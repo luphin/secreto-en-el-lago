@@ -30,7 +30,7 @@ graph TD
         K[Cloud]
     end
     A -- HTTP/S y WebSockets --> B
-    A -- Subir Archivo LaTeX --> B
+    A -- Subir Archivo --> B
     B -- Petición de Autenticación --> C
     B -- Solicitud de Mensajes --> D
     B -- Petición de Archivos --> F
