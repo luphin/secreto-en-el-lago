@@ -65,7 +65,7 @@ graph TD
     %% Flujo principal del servicio de calendario
     B --> C[Servicio de Calendario recibe archivo];
     C --> D[Leer el archivo de texto];
-    D --> E{Buscar el patrón de fecha `\evento{...}{...}`};
+    D --> E{Buscar el patrón de fecha `fecha `};
 
     %% Ramificaciones del proceso
     E -- No se encuentra el patrón --> F[Generar un error];
