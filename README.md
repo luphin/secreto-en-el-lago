@@ -47,3 +47,12 @@ graph TD
     D -- Envía Evento --> G
 
 ```
+``` mermaid
+sequenceDiagram
+    Usuario ->> Servicio de Chat: Enviar mensaje
+    Servicio de Chat ->> Bus de Eventos: Publicar: MensajeEnviado
+    Bus de Eventos ->> Servicio de Notificaciones: Enviar
+    Bus de Eventos ->> Servicio de Búsqueda: Enviar
+    Servicio de Notificaciones ->> Usuario: Notificación Push
+
+```
