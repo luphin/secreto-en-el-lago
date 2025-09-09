@@ -1,92 +1,43 @@
-# secreto-en-el-lago
-LPWWW202502 Secreto en el lago
+[![Abrir en Figma](https://img.shields.io/badge/Figma-Design-blue?logo=figma)](https://www.figma.com/design/khz4CZWwUWkym0Egrsx7mc/Caso16_SecretoEnElLago?node-id=0-1)
+
+# Proyecto Sistema de Préstamo en Biblioteca Municipal (Caso 16) 
+
+Este proyecto tiene como objetivo automatizar gran parte de los servicios de la 
+
+**Biblioteca de Estación Central (BEC)**, que actualmente enfrenta problemas de eficiencia debido al aumento de usuarios. El sistema de préstamo y gestión actual, que utiliza fichas de papel y catálogos físicos, se ha vuelto un "cuello de botella" y ha llevado a procesos de recuperación de documentos lentos y a una disminución en la satisfacción de los usuarios.
+
+### Objetivo
+
+La solución propuesta es desarrollar un 
+
+Sistema de Préstamo en Biblioteca Municipal en un entorno web. La meta principal es modernizar los servicios para gestionar de manera más eficiente la creciente demanda de la comunidad.
+Funcionalidades clave
+
+El nuevo sistema incluirá las siguientes funcionalidades principales:
+
+- Registro de usuarios
+- Catálogo electrónico
+- Gestión de préstamos y devoluciones
+- Control de documentos
+- Seguridad y tecnología
+- Interfaces de usuario
+
+## Tech Stack
+**Demo:** Figma y Figma Make
+
+## Demo FIGMA
+
+[Ver diseño en Figma](https://www.figma.com/design/khz4CZWwUWkym0Egrsx7mc/Caso16_SecretoEnElLago?node-id=0-1)
+
+## Authors
+
+- [@Waryxxful](https://github.com/Waryxxful)
+- [@panchosteta](https://github.com/panchosteta)
+- [@Bakisz](https://github.com/Bakisz)
+- [@luphin](https://github.com/luphin)
 
 
-``` mermaid
----
-config:
-  look: classic
-  theme: default
----
-graph TD
-    A[Cliente]
-    subgraph Microservicios
-        direction LR
-        B[API Gateway]
-        C[Servicio de Autenticación]
-        D[Servicio de Chat]
-        E[Servicio de Notificaciones]
-        F[Servicio de Archivos]
-        G[Servicio de Búsqueda]
-        L[Servicio de Calendario]
-    end
-    subgraph Base de Datos
-        H[Usuarios]
-        I[Mensajes]
-        J[Búsqueda]
-        M[Calendario]
-    end
-    subgraph Almacenamiento
-        K[Cloud]
-    end
-    A -- HTTP/S y WebSockets --> B
-    A -- Subir Archivo --> B
-    B -- Petición de Autenticación --> C
-    B -- Solicitud de Mensajes --> D
-    B -- Petición de Archivos --> F
-    B -- Consulta de Búsqueda --> G
-    B -- Subir Archivo Calendario --> L
-    C -- Lee/Escribe --> H
-    D -- Lee/Escribe --> I
-    F -- Lee/Escribe --> K
-    G -- Lee/Escribe --> J
-    L -- Lee archivo y guarda en --> M
-    L -- "Programar Notificación" --> E
-    L -- "Publicar en Chat" --> D
-    D -- Envía Evento (RabbitMQ/Kafka) --> E
-    D -- Envía Evento --> G
+## Acknowledgements
 
-```
-``` mermaid
-sequenceDiagram
-    Usuario ->> Servicio de Chat: Enviar mensaje
-    Servicio de Chat ->> Bus de Eventos: Publicar: MensajeEnviado
-    Bus de Eventos ->> Servicio de Notificaciones: Enviar
-    Bus de Eventos ->> Servicio de Búsqueda: Enviar
-    Servicio de Notificaciones ->> Usuario: Notificación Push
+Al profesor <3
 
-```
-
-```mermaid
-graph TD
-    %% Inicio del proceso
-    A[Inicio: Usuario sube archivo LaTeX] --> B{API Gateway enruta a Servicio de Calendario};
-
-    %% Flujo principal del servicio de calendario
-    B --> C[Servicio de Calendario recibe archivo];
-    C --> D[Leer el archivo de texto];
-    D --> E{Buscar el patrón de fecha `fecha `};
-
-    %% Ramificaciones del proceso
-    E -- No se encuentra el patrón --> F[Generar un error];
-    F --> G[Notificar al usuario sobre error en el formato];
-    E -- Patrón encontrado --> H[Extraer evento y fecha];
-    H --> I{Validar el formato de la fecha};
-
-    %% Flujo de validación
-    I -- Fecha inválida --> J[Generar un error];
-    J --> G;
-    I -- Fecha válida --> K[Guardar evento y fecha en la Base de Datos de Calendario];
-
-    %% Flujo de publicación y notificación
-    K --> L[Programar notificaciones para el evento];
-    L --> M[Enviar evento al Servicio de Notificaciones];
-    
-    K --> N[Publicar en el chat];
-    N --> O[Enviar evento al Servicio de Chat para publicación];
-
-    %% Final del proceso
-    O --> P[Fin];
-    M --> P;
-    G --> P;
-```
