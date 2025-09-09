@@ -2,16 +2,12 @@
 
 # Proyecto Sistema de Préstamo en Biblioteca Municipal (Caso 16) 
 
-Este proyecto tiene como objetivo automatizar gran parte de los servicios de la 
-
-**Biblioteca de Estación Central (BEC)**, que actualmente enfrenta problemas de eficiencia debido al aumento de usuarios. El sistema de préstamo y gestión actual, que utiliza fichas de papel y catálogos físicos, se ha vuelto un "cuello de botella" y ha llevado a procesos de recuperación de documentos lentos y a una disminución en la satisfacción de los usuarios.
+Este proyecto tiene como objetivo automatizar gran parte de los servicios de la **Biblioteca de Estación Central (BEC)**, que actualmente enfrenta problemas de eficiencia debido al aumento de usuarios. El sistema de préstamo y gestión actual, que utiliza fichas de papel y catálogos físicos, se ha vuelto un "cuello de botella" y ha llevado a procesos de recuperación de documentos lentos y a una disminución en la satisfacción de los usuarios.
 
 ### Objetivo
 
-La solución propuesta es desarrollar un 
-
-Sistema de Préstamo en Biblioteca Municipal en un entorno web. La meta principal es modernizar los servicios para gestionar de manera más eficiente la creciente demanda de la comunidad.
-Funcionalidades clave
+La solución propuesta es desarrollar un Sistema de Préstamo en Biblioteca Municipal en un entorno web. La meta principal es modernizar los servicios para gestionar de manera más eficiente la creciente demanda de la comunidad.
+Funcionalidades clave.
 
 El nuevo sistema incluirá las siguientes funcionalidades principales:
 
