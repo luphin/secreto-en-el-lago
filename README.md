@@ -28,6 +28,7 @@ El nuevo sistema incluirá las siguientes funcionalidades principales:
 ## Demo FIGMA
 
 [Ver diseño en Figma](https://www.figma.com/design/khz4CZWwUWkym0Egrsx7mc/Caso16_SecretoEnElLago?node-id=0-1)
+  - [Vista Prototipo](https://www.figma.com/proto/khz4CZWwUWkym0Egrsx7mc/Caso16_SecretoEnElLago?node-id=0-1&t=idafGVbU3IY7rNod-1)
 
 ## Authors
 
