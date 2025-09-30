@@ -7,9 +7,13 @@ from app.schemas.user import UserResponse, UserRole
 
 security = HTTPBearer()
 
+def get_auth_service() -> AuthService:
+    """Dependency para obtener una instancia de AuthService"""
+    return AuthService()
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    auth_service: AuthService = Depends()
+    auth_service: AuthService = Depends(get_auth_service)
 ) -> UserResponse:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

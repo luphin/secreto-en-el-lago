@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app.services.auth_service import AuthService
 from app.schemas.user import UserCreate, UserResponse
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_auth_service
 
 router = APIRouter()
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserCreate, auth_service: AuthService = Depends()):
+async def register(user_data: UserCreate, auth_service: AuthService = Depends(get_auth_service)):
     """CU3: Registrar Ficha Usuario - RF5"""
     try:
         return await auth_service.register_user(user_data)
@@ -19,7 +19,7 @@ async def register(user_data: UserCreate, auth_service: AuthService = Depends())
 @router.post("/login")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    auth_service: AuthService = Depends()
+    auth_service: AuthService = Depends(get_auth_service)
 ):
     """CU1: Autenticar Usuarios - RF1"""
     try:
@@ -32,7 +32,7 @@ async def login(
         )
 
 @router.post("/verify-email")
-async def verify_email(token: str, auth_service: AuthService = Depends()):
+async def verify_email(token: str, auth_service: AuthService = Depends(get_auth_service)):
     """CU5: Activar Cuenta - RF6"""
     try:
         success = await auth_service.verify_email(token)
@@ -44,7 +44,7 @@ async def verify_email(token: str, auth_service: AuthService = Depends()):
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/refresh-token")
-async def refresh_token(refresh_token: str, auth_service: AuthService = Depends()):
+async def refresh_token(refresh_token: str, auth_service: AuthService = Depends(get_auth_service)):
     """Refresh token para autenticación"""
     try:
         return await auth_service.refresh_token(refresh_token)

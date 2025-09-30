@@ -1,6 +1,6 @@
 import aiosmtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 import structlog
 from app.config.settings import settings
@@ -16,13 +16,13 @@ class EmailService:
 
     async def send_email(self, to_email: str, subject: str, html_content: str) -> bool:
         try:
-            message = MimeMultipart("alternative")
+            message = MIMEMultipart("alternative")
             message["From"] = self.username
             message["To"] = to_email
             message["Subject"] = subject
 
             # Create HTML part
-            html_part = MimeText(html_content, "html")
+            html_part = MIMEText(html_content, "html")
             message.attach(html_part)
 
             await aiosmtplib.send(

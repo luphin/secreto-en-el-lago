@@ -1,6 +1,8 @@
 import asyncio
 import json
 import structlog
+import uuid
+from datetime import datetime
 from kafka import KafkaConsumer
 from typing import Callable, Dict, Any
 from app.config.settings import settings
@@ -13,12 +15,17 @@ logger = structlog.get_logger()
 class KafkaConsumerService:
     def __init__(self):
         self.email_service = EmailService()
-        self.db = get_database()
-        self.loan_service = LoanService(self.db)
+        self.db = None
+        self.loan_service = None
         self.running = False
         
     async def start_consumers(self):
         """Inicia todos los consumers de Kafka"""
+        # Inicializar servicios que requieren DB después de que la DB esté conectada
+        self.db = get_database()
+        if self.db is not None:
+            self.loan_service = LoanService(self.db)
+        
         self.running = True
         
         # Iniciar consumers en background tasks

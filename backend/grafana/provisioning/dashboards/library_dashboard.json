@@ -1,178 +1,392 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "Sistema Biblioteca Municipal",
-    "tags": ["biblioteca", "monitoring"],
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "Solicitudes por Hora",
-        "type": "stat",
-        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
-        "targets": [
-          {
-            "expr": "rate(biblioteca_requests_total[5m])",
-            "legendFormat": "Solicitudes/s"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "palette-classic"},
-            "unit": "reqps"
-          }
-        }
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
-      {
-        "id": 2,
-        "title": "Préstamos Activos",
-        "type": "stat",
-        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
-        "targets": [
-          {
-            "expr": "biblioteca_loans_active",
-            "legendFormat": "Préstamos Activos"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "value", "fixedColor": "green"},
-            "unit": "none"
-          }
-        }
-      },
-      {
-        "id": 3,
-        "title": "Usuarios Registrados",
-        "type": "stat",
-        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
-        "targets": [
-          {
-            "expr": "biblioteca_users_total",
-            "legendFormat": "Total Usuarios"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "value", "fixedColor": "blue"},
-            "unit": "none"
-          }
-        }
-      },
-      {
-        "id": 4,
-        "title": "Documentos Disponibles",
-        "type": "stat",
-        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
-        "targets": [
-          {
-            "expr": "biblioteca_documents_available",
-            "legendFormat": "Documentos Disponibles"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "value", "fixedColor": "purple"},
-            "unit": "none"
-          }
-        }
-      },
-      {
-        "id": 5,
-        "title": "Solicitudes por Endpoint",
-        "type": "bargauge",
-        "gridPos": {"h": 10, "w": 12, "x": 0, "y": 8},
-        "targets": [
-          {
-            "expr": "sum by (endpoint) (rate(biblioteca_requests_total[5m]))",
-            "legendFormat": "{{endpoint}}"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "palette-classic"},
-            "unit": "reqps"
-          }
-        }
-      },
-      {
-        "id": 6,
-        "title": "Tiempo de Respuesta",
-        "type": "timeseries",
-        "gridPos": {"h": 10, "w": 12, "x": 12, "y": 8},
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, sum(rate(biblioteca_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "p95"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
           },
-          {
-            "expr": "histogram_quantile(0.50, sum(rate(biblioteca_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "p50"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "palette-classic"},
-            "unit": "s"
-          }
-        }
-      },
-      {
-        "id": 7,
-        "title": "Errores por Tipo",
-        "type": "piechart",
-        "gridPos": {"h": 12, "w": 8, "x": 0, "y": 18},
-        "targets": [
-          {
-            "expr": "sum by (status) (rate(biblioteca_requests_total{status=~\"4..|5..\"}[5m]))",
-            "legendFormat": "{{status}}"
-          }
-        ]
-      },
-      {
-        "id": 8,
-        "title": "Eventos Kafka",
-        "type": "timeseries",
-        "gridPos": {"h": 12, "w": 8, "x": 8, "y": 18},
-        "targets": [
-          {
-            "expr": "rate(biblioteca_kafka_messages_sent_total[5m])",
-            "legendFormat": "Mensajes Enviados"
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          {
-            "expr": "rate(biblioteca_kafka_messages_processed_total[5m])",
-            "legendFormat": "Mensajes Procesados"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "palette-classic"},
-            "unit": "msgps"
-          }
-        }
+          "unit": "none"
+        },
+        "overrides": []
       },
-      {
-        "id": 9,
-        "title": "Logs por Nivel",
-        "type": "logs",
-        "gridPos": {"h": 12, "w": 8, "x": 16, "y": 18},
-        "targets": [
-          {
-            "expr": "{job=\"biblioteca-app\"}",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "showTime": true,
-          "wrapLogMessage": true,
-          "prettifyLogMessage": true
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "biblioteca_loans_active",
+          "refId": "A"
         }
-      }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
+      ],
+      "title": "Préstamos Activos",
+      "type": "stat"
     },
-    "refresh": "10s"
-  }
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "biblioteca_users_total",
+          "refId": "A"
+        }
+      ],
+      "title": "Usuarios Registrados",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "biblioteca_documents_available",
+          "refId": "A"
+        }
+      ],
+      "title": "Documentos Disponibles",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "rate(biblioteca_requests_total[5m])",
+          "legendFormat": "{{method}} {{endpoint}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Tasa de Solicitudes HTTP",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "msgps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "rate(biblioteca_kafka_messages_sent_total[5m])",
+          "legendFormat": "Enviados - {{topic}}",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "rate(biblioteca_kafka_messages_processed_total[5m])",
+          "legendFormat": "Procesados - {{topic}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Mensajes Kafka",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["biblioteca", "monitoring"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Sistema Biblioteca Municipal",
+  "uid": "biblioteca-dashboard",
+  "version": 1,
+  "weekStart": ""
 }

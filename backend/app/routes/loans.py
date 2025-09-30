@@ -2,14 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List
 from app.services.loan_service import LoanService
 from app.schemas.loan import LoanCreate, LoanResponse, LoanType
+from app.schemas.user import UserRole
 from app.middleware.auth import get_current_user, require_roles
 
 router = APIRouter()
 
+def get_loan_service() -> LoanService:
+    """Dependency para obtener una instancia de LoanService"""
+    return LoanService()
+
 @router.post("/", response_model=LoanResponse, status_code=201)
 async def create_loan(
     loan_data: LoanCreate,
-    loan_service: LoanService = Depends(),
+    loan_service: LoanService = Depends(get_loan_service),
     current_user = Depends(require_roles([UserRole.LIBRARIAN]))
 ):
     """CU10: Registrar Préstamo - RF11, RF8"""
@@ -23,7 +28,7 @@ async def create_loan(
 @router.get("/{loan_id}", response_model=LoanResponse)
 async def get_loan(
     loan_id: str,
-    loan_service: LoanService = Depends(),
+    loan_service: LoanService = Depends(get_loan_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """Obtener préstamo por ID"""
@@ -41,7 +46,7 @@ async def get_loan(
 async def return_loan_items(
     loan_id: str,
     ejemplares_ids: List[str],
-    loan_service: LoanService = Depends(),
+    loan_service: LoanService = Depends(get_loan_service),
     current_user = Depends(require_roles([UserRole.LIBRARIAN]))
 ):
     """CU15: Ingresar Devolución - RF15"""
@@ -61,7 +66,7 @@ async def return_loan_items(
 async def get_user_loans(
     usuario_id: str,
     activos: bool = Query(True),
-    loan_service: LoanService = Depends(),
+    loan_service: LoanService = Depends(get_loan_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """Obtener préstamos de un usuario"""
@@ -73,7 +78,7 @@ async def get_user_loans(
 
 @router.get("/vencidos/", response_model=List[LoanResponse])
 async def get_overdue_loans(
-    loan_service: LoanService = Depends(),
+    loan_service: LoanService = Depends(get_loan_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """CU13: Revisar Préstamos Vencidos - RF14"""
@@ -87,7 +92,7 @@ async def get_overdue_loans(
 async def extend_loan(
     loan_id: str,
     dias_extension: int = Query(7, ge=1, le=30),
-    loan_service: LoanService = Depends(),
+    loan_service: LoanService = Depends(get_loan_service),
     current_user = Depends(require_roles([UserRole.LIBRARIAN]))
 ):
     """Extender préstamo por días adicionales"""
@@ -103,7 +108,7 @@ async def extend_loan(
 
 @router.get("/sala/vencidos", response_model=List[LoanResponse])
 async def get_overdue_sala_loans(
-    loan_service: LoanService = Depends(),
+    loan_service: LoanService = Depends(get_loan_service),
     current_user = Depends(require_roles([UserRole.ADMINISTRATIVE]))
 ):
     """CU12: Revisar Préstamos Sala Vencidos - RF13"""

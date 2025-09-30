@@ -12,7 +12,7 @@ logger = structlog.get_logger()
 
 class UserService:
     def __init__(self, db: AsyncIOMotorDatabase = None):
-        self.db = db or get_database()
+        self.db = db if db is not None else get_database()
         self.kafka_service = KafkaService()
         self.collection = self.db.users
 

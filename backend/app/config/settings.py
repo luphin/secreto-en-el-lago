@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     email_port: int
     email_username: str
     email_password: str
+    email_name: Optional[str] = "Biblioteca Municipal"
+    email_simulation: bool = False
 
     # Kafka
     kafka_bootstrap_servers: str = "localhost:9092"
@@ -26,9 +28,13 @@ class Settings(BaseSettings):
     # Application
     debug: bool = False
     allowed_hosts: str = "localhost,127.0.0.1"
+    
+    # Grafana
+    grafana_password: Optional[str] = "admin"
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignorar campos extra del .env que no están definidos
 
 
 settings = Settings()

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-import jwt
+from jose import jwt
 from passlib.context import CryptContext
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import uuid
@@ -18,7 +18,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthService:
     def __init__(self, db: AsyncIOMotorDatabase = None):
-        self.db = db or get_database()
+        self.db = db if db is not None else get_database()
         self.email_service = EmailService()
         self.kafka_service = KafkaService()
         self.collection = self.db.users

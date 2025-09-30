@@ -3,14 +3,19 @@ from typing import List, Optional
 from datetime import datetime
 from app.services.request_service import RequestService
 from app.schemas.request import RequestCreate, RequestResponse, RequestType
+from app.schemas.user import UserRole
 from app.middleware.auth import get_current_user, require_roles
 
 router = APIRouter()
 
+def get_request_service() -> RequestService:
+    """Dependency para obtener una instancia de RequestService"""
+    return RequestService()
+
 @router.post("/", response_model=RequestResponse, status_code=201)
 async def create_request(
     request_data: RequestCreate,
-    request_service: RequestService = Depends(),
+    request_service: RequestService = Depends(get_request_service),
     current_user = Depends(get_current_user)  # Usuario normal puede crear solicitudes
 ):
     """CU7: Solicitar Préstamo - RF8 y CU8: Reservar Documento - RF9"""
@@ -27,7 +32,7 @@ async def get_requests(
     limit: int = Query(100, ge=1, le=1000),
     tipo: Optional[RequestType] = None,
     estado: Optional[str] = None,
-    request_service: RequestService = Depends(),
+    request_service: RequestService = Depends(get_request_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """CU9: Revisar Solicitudes Préstamo - RF10"""
@@ -39,7 +44,7 @@ async def get_requests(
 @router.get("/{request_id}", response_model=RequestResponse)
 async def get_request(
     request_id: str,
-    request_service: RequestService = Depends(),
+    request_service: RequestService = Depends(get_request_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """Obtener solicitud por ID"""
@@ -56,7 +61,7 @@ async def get_request(
 @router.post("/{request_id}/procesar")
 async def process_request(
     request_id: str,
-    request_service: RequestService = Depends(),
+    request_service: RequestService = Depends(get_request_service),
     current_user = Depends(require_roles([UserRole.LIBRARIAN]))
 ):
     """Procesar solicitud (marcar como procesada)"""
@@ -75,7 +80,7 @@ async def process_request(
 @router.post("/{request_id}/cancelar")
 async def cancel_request(
     request_id: str,
-    request_service: RequestService = Depends(),
+    request_service: RequestService = Depends(get_request_service),
     current_user = Depends(get_current_user)
 ):
     """Cancelar solicitud (solo el usuario que la creó o admin)"""
@@ -95,7 +100,7 @@ async def cancel_request(
 async def get_user_requests(
     usuario_id: str,
     activas: bool = Query(True),
-    request_service: RequestService = Depends(),
+    request_service: RequestService = Depends(get_request_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """Obtener solicitudes de un usuario específico"""
@@ -108,7 +113,7 @@ async def get_user_requests(
 @router.get("/mis-solicitudes/", response_model=List[RequestResponse])
 async def get_my_requests(
     activas: bool = Query(True),
-    request_service: RequestService = Depends(),
+    request_service: RequestService = Depends(get_request_service),
     current_user = Depends(get_current_user)
 ):
     """Obtener las solicitudes del usuario actual"""

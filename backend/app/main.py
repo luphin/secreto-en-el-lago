@@ -5,9 +5,9 @@ import structlog
 import asyncio
 
 from app.config.settings import settings
-from app.config.database import connect_to_mongo, close_mongo_connection
+from app.config.database import connect_to_mongo, close_mongo_connection, get_database
 from app.routes import auth, users, documents, loans, requests, kafka, metrics
-from app.middleware.logging import LoggingMiddleware, setup_structured_logging
+from app.middleware.loggin import LoggingMiddleware, setup_structured_logging
 from app.services.kafka_manager import kafka_manager
 from app.services.kafka_consumer_service import kafka_consumer_service
 from app.monitoring.prometheus_metrics import metrics_service

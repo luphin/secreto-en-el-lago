@@ -6,14 +6,19 @@ from app.schemas.document import (
     DocumentType, DocumentCategory, MediaFormat
 )
 from app.schemas.ejemplar import EjemplarResponse
+from app.schemas.user import UserRole
 from app.middleware.auth import get_current_user, require_roles
 
 router = APIRouter()
 
+def get_document_service() -> DocumentService:
+    """Dependency para obtener una instancia de DocumentService"""
+    return DocumentService()
+
 @router.post("/", response_model=DocumentResponse, status_code=201)
 async def create_document(
     document_data: DocumentCreate,
-    document_service: DocumentService = Depends(),
+    document_service: DocumentService = Depends(get_document_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """CU2: Administrar Colección - RF2"""
@@ -29,7 +34,7 @@ async def get_documents(
     tipo: Optional[DocumentType] = None,
     categoria: Optional[DocumentCategory] = None,
     disponible: Optional[bool] = None,
-    document_service: DocumentService = Depends()
+    document_service: DocumentService = Depends(get_document_service)
 ):
     """CU6: Consultar Catálogo - RF3, RF7 (sin autenticación)"""
     try:
@@ -45,7 +50,7 @@ async def search_documents(
     query: str = Query(..., min_length=1),
     tipo: Optional[DocumentType] = None,
     categoria: Optional[DocumentCategory] = None,
-    document_service: DocumentService = Depends()
+    document_service: DocumentService = Depends(get_document_service)
 ):
     """CU6: Consultar Catálogo - RF7 - Búsqueda avanzada"""
     try:
@@ -57,7 +62,7 @@ async def search_documents(
 @router.get("/{document_id}", response_model=DocumentResponse)
 async def get_document(
     document_id: str,
-    document_service: DocumentService = Depends()
+    document_service: DocumentService = Depends(get_document_service)
 ):
     """Obtener documento por ID"""
     try:
@@ -74,7 +79,7 @@ async def get_document(
 async def update_document(
     document_id: str,
     document_update: DocumentUpdate,
-    document_service: DocumentService = Depends(),
+    document_service: DocumentService = Depends(get_document_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """Actualizar documento"""
@@ -91,7 +96,7 @@ async def update_document(
 @router.post("/{document_id}/ejemplares")
 async def add_ejemplar(
     document_id: str,
-    document_service: DocumentService = Depends(),
+    document_service: DocumentService = Depends(get_document_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """Agregar un nuevo ejemplar a un documento"""
@@ -108,7 +113,7 @@ async def add_ejemplar(
 @router.get("/{document_id}/ejemplares", response_model=List[EjemplarResponse])
 async def get_document_ejemplares(
     document_id: str,
-    document_service: DocumentService = Depends()
+    document_service: DocumentService = Depends(get_document_service)
 ):
     """Obtener todos los ejemplares de un documento"""
     try:
@@ -120,7 +125,7 @@ async def get_document_ejemplares(
 @router.get("/{document_id}/ejemplares/disponibles", response_model=List[EjemplarResponse])
 async def get_available_ejemplares(
     document_id: str,
-    document_service: DocumentService = Depends()
+    document_service: DocumentService = Depends(get_document_service)
 ):
     """Obtener ejemplares disponibles de un documento"""
     try:
@@ -131,7 +136,7 @@ async def get_available_ejemplares(
 
 @router.get("/stats/overview")
 async def get_document_stats(
-    document_service: DocumentService = Depends(),
+    document_service: DocumentService = Depends(get_document_service),
     current_user = Depends(require_roles([UserRole.ADMIN, UserRole.LIBRARIAN]))
 ):
     """Obtener estadísticas de documentos"""
