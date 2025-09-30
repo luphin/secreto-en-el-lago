@@ -18,6 +18,16 @@ El nuevo sistema incluirá las siguientes funcionalidades principales:
 - Seguridad y tecnología
 - Interfaces de usuario
 
+## Roadmap
+
+- Desarrollo de backend [README backend](backend/README.md) EN DESARROLLO!
+- Implementación de frontend
+- Sistema de reportes avanzados
+- Integración con sistemas de pago para multas
+- Sistema de recomendaciones
+
+API para terceros
+
 ## Tech Stack
 **Demo:** Figma y Figma Make
 
