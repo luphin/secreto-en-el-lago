@@ -1,0 +1,69 @@
+{
+  "dashboard": {
+    "title": "Sistema BEC - Overview",
+    "tags": ["bec", "biblioteca"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Logs del Sistema",
+        "type": "logs",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "expr": "{container=\"bec_backend\"}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 12,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Errores por Minuto",
+        "type": "graph",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "expr": "rate({container=\"bec_backend\"} |= \"ERROR\" [1m])",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "id": 3,
+        "title": "Warnings por Minuto",
+        "type": "graph",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "expr": "rate({container=\"bec_backend\"} |= \"WARNING\" [1m])",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ],
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}
+

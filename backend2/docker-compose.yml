@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # Aplicación FastAPI
+  backend:
+    build: .
+    container_name: bec_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MONGODB_DB_NAME=bec_biblioteca
+      - SECRET_KEY=your-secret-key-change-this-in-production-use-secure-random-key
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - STORAGE_ENDPOINT=http://minio:9000
+      - STORAGE_ACCESS_KEY=minioadmin
+      - STORAGE_SECRET_KEY=minioadmin
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      - mongodb
+      - kafka
+      - minio
+    networks:
+      - bec_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Worker de notificaciones
+  notification_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    container_name: bec_notification_worker
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EMAIL_API_ENABLED=false
+    depends_on:
+      - kafka
+    networks:
+      - bec_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: bec_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=bec_biblioteca
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # Zookeeper (requerido por Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: bec_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: bec_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # MinIO (almacenamiento de archivos S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: bec_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # Loki (agregación de logs)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: bec_loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # Promtail (recolector de logs)
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: bec_promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # Grafana (visualización)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: bec_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - loki
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+networks:
+  bec_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  minio_data:
+  loki_data:
+  grafana_data:
+

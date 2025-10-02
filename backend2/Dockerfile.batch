@@ -1,0 +1,23 @@
+# Dockerfile para los trabajos batch
+FROM python:3.11-slim
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar archivos de requerimientos
+COPY requirements.txt .
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código de la aplicación
+COPY ./app ./app
+
+# Comando para ejecutar los trabajos batch
+CMD ["python", "-m", "app.services.batch_jobs"]
+
