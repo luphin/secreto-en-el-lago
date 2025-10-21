@@ -352,6 +352,11 @@ classDiagram
     UserResponse --> FileUploadResponse : uploads photo
     UserResponse --> FingerprintUploadResponse : uploads fingerprint
 ```
+> [!Note]
+> **Leyenda del Diagrama:**<br>
+> - Línea sólida con flecha cerrada (`<|--`): Herencia<br>
+> - Línea sólida con flecha abierta (`-->`): Composición/Asociación fuerte<br>
+> - Línea punteada con flecha abierta (`..>`): Dependencia/Derivación
 
 ## Descripción de Contratos
 
