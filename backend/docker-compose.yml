@@ -1,119 +1,173 @@
+version: '3.8'
+
 services:
-  app:
+  # Aplicación FastAPI
+  backend:
     build: .
+    container_name: bec_backend
     ports:
       - "8000:8000"
     environment:
-      - MONGODB_URL=${MONGODB_URL}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - JWT_ALGORITHM=${JWT_ALGORITHM}
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=${EMAIL_PORT}
-      - EMAIL_USERNAME=${EMAIL_USERNAME}
-      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MONGODB_DB_NAME=bec_biblioteca
+      - SECRET_KEY=your-secret-key-change-this-in-production-use-secure-random-key
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - STORAGE_ENDPOINT=http://minio:9000
+      - STORAGE_ACCESS_KEY=minioadmin
+      - STORAGE_SECRET_KEY=minioadmin
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      - mongodb
+      - kafka
+      - minio
+    networks:
+      - bec_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Worker de notificaciones
+  notification_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    container_name: bec_notification_worker
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EMAIL_API_ENABLED=false
     depends_on:
       - kafka
-    volumes:
-      - ./app/logs:/app/logs
     networks:
-      - library-network
+      - bec_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: bec_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=bec_biblioteca
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # Zookeeper (requerido por Kafka)
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
-    ports:
-      - "2181:2181"
+    container_name: bec_zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-      - library-network
+      - bec_network
+    restart: unless-stopped
 
+  # Kafka
   kafka:
     image: confluentinc/cp-kafka:7.5.0
+    container_name: bec_kafka
+    depends_on:
+      - zookeeper
     ports:
       - "9092:9092"
-      - "9093:9093"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-    depends_on:
-      - zookeeper
-    volumes:
-      - kafka_data:/var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     networks:
-      - library-network
+      - bec_network
+    restart: unless-stopped
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+  # MinIO (almacenamiento de archivos S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: bec_minio
     ports:
-      - "8080:8080"
+      - "9000:9000"
+      - "9001:9001"
     environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
-    depends_on:
-      - kafka
-    networks:
-      - library-network
-
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     volumes:
-      - ./app/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
+      - minio_data:/data
+    command: server /data --console-address ":9001"
     networks:
-      - library-network
+      - bec_network
+    restart: unless-stopped
 
+  # Loki (agregación de logs)
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:2.9.0
+    container_name: bec_loki
     ports:
       - "3100:3100"
     volumes:
-      - ./app/monitoring/loki-config.yml:/etc/loki/local-config.yml
       - loki_data:/loki
-    command: -config.file=/etc/loki/local-config.yml
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
     networks:
-      - library-network
+      - bec_network
+    restart: unless-stopped
 
+  # Promtail (recolector de logs)
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: bec_promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - bec_network
+    restart: unless-stopped
+
+  # Grafana (visualización)
   grafana:
-    build: ./grafana
+    image: grafana/grafana:10.2.0
+    container_name: bec_grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
-      - prometheus
       - loki
     networks:
-      - library-network
-
-volumes:
-  kafka_data:
-  grafana_data:
-  prometheus_data:
-  loki_data:
+      - bec_network
+    restart: unless-stopped
 
 networks:
-  library-network:
+  bec_network:
     driver: bridge
+
+volumes:
+  mongodb_data:
+  minio_data:
+  loki_data:
+  grafana_data:
+

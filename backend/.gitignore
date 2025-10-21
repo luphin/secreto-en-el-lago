@@ -1,14 +1,12 @@
-# Environment variables
-.env
-.env.*
-!.env.example
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+env/
+venv/
+ENV/
 build/
 develop-eggs/
 dist/
@@ -21,54 +19,41 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
-# Virtual environments
-venv/
-env/
-ENV/
+# Environment variables
+.env
+.env.local
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # Logs
 *.log
 logs/
-app/logs/*.log
-!app/logs/.gitkeep
 
 # Database
 *.db
-*.sqlite
 *.sqlite3
-
-# Backup files
-backups/
-emails_simulados.json
 
 # Docker
 docker-compose.override.yml
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
 # Testing
-.coverage
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+docs/_build/
+

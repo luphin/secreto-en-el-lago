@@ -1,0 +1,187 @@
+﻿﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Biblioteca</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/frontend.styles.css" asp-append-version="true" />
+</head>
+<body>
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        var isLoginPage = string.Equals(currentController, "Auth", System.StringComparison.OrdinalIgnoreCase)
+                          && string.Equals(currentAction, "Login", System.StringComparison.OrdinalIgnoreCase);
+        // Allow explicit override from views
+        if (ViewData["HideLayout"] != null && ViewData["HideLayout"].ToString() == "True")
+        {
+            isLoginPage = true;
+        }
+    }
+
+    @{
+        var isAnonymous = ViewData["IsAnonymous"] != null && ViewData["IsAnonymous"].ToString().ToLower() == "true";
+    }
+
+    @if (!isLoginPage)
+    {
+        if (isAnonymous)
+        {
+            <!-- Anonymous topbar: light, compact, search centered and Ingresar button -->
+            <header class="anonymous-topbar">
+                <div class="container-fluid d-flex align-items-center">
+                    <div class="top-left">
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="text-muted small">Biblioteca Municipal</a>
+                    </div>
+                    <div class="top-search flex-grow-1 px-3">
+                        <form asp-action="Index" asp-controller="Home" method="get" class="d-flex">
+                            <input type="text" name="search" class="form-control me-2" placeholder="Buscar libros, autores, ISBN..." value="@ViewData["Search"]" />
+                            <button class="btn btn-outline-secondary me-2" type="submit">Buscar</button>
+                        </form>
+                    </div>
+                    <div class="top-right">
+                        <a asp-controller="Auth" asp-action="Login" class="btn btn-outline-dark">Ingresar</a>
+                    </div>
+                </div>
+            </header>
+        }
+        else
+        {
+            <header>
+                <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Biblioteca</a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav"
+                                aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarNav">
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Catálogo</a>
+                                </li>
+                                @if (Context.Session.GetString("AccessToken") != null)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="User" asp-action="Profile">Mi Perfil</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Loan" asp-action="Index">Mis Préstamos</a>
+                                    </li>
+                                    @* Staff navigation *@
+                                    @if (ViewData["UserRole"]?.ToString() == "bibliotecario" || ViewData["UserRole"]?.ToString() == "administrativo")
+                                    {
+                                        <li class="nav-item dropdown">
+                                            <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Gestión
+                                            </a>
+                                            <ul class="dropdown-menu" aria-labelledby="staffDropdown">
+                                                <li><a class="dropdown-item" asp-controller="Document" asp-action="Index">Documentos</a></li>
+                                                <li><a class="dropdown-item" asp-controller="User" asp-action="Index">Usuarios</a></li>
+                                                <li><a class="dropdown-item" asp-controller="Loan" asp-action="Index">Préstamos</a></li>
+                                            </ul>
+                                        </li>
+                                    }
+                                }
+                            </ul>
+                            <ul class="navbar-nav">
+                                @if (Context.Session.GetString("AccessToken") == null)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Auth" asp-action="Login">Iniciar Sesión</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Auth" asp-action="Register">Registrarse</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="nav-item">
+                                        <form class="d-inline" asp-controller="Auth" asp-action="Logout" method="post">
+                                            <button type="submit" class="btn btn-link nav-link">Cerrar Sesión</button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+        }
+    }
+    @if (!isLoginPage)
+    {
+        if (isAnonymous)
+        {
+            <div class="container-fluid px-4">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+        }
+        else
+        {
+            <div class="container">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+        }
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    @if (!isLoginPage)
+    {
+        <footer class="site-footer">
+            <div class="footer-inner">
+                <div class="d-flex">
+                    <div class="brand-col me-4">
+                        <div class="brand-name">Biblioteca Municipal</div>
+                        <div class="social-icons mb-3">
+                            <a href="#" title="Instagram">IG</a>
+                            <a href="#" title="X">X</a>
+                            <a href="#" title="YouTube">YT</a>
+                            <a href="#" title="LinkedIn">IN</a>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-grow-1">
+                        <div class="link-col me-4">
+                            <h6>Use cases</h6>
+                            <ul>
+                                <li><a href="#">UI design</a></li>
+                                <li><a href="#">UX design</a></li>
+                                <li><a href="#">Wireframing</a></li>
+                            </ul>
+                        </div>
+                        <div class="link-col me-4">
+                            <h6>Explore</h6>
+                            <ul>
+                                <li><a href="#">Design</a></li>
+                                <li><a href="#">Prototyping</a></li>
+                                <li><a href="#">Development features</a></li>
+                            </ul>
+                        </div>
+                        <div class="link-col">
+                            <h6>Resources</h6>
+                            <ul>
+                                <li><a href="#">Blog</a></li>
+                                <li><a href="#">Best practices</a></li>
+                                <li><a href="#">Colors</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    }
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

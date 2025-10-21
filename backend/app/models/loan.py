@@ -1,46 +1,93 @@
+"""
+Modelos de préstamo (loan)
+"""
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel, Field
-from app.schemas.loan import LoanType, LoanStatus
+from bson import ObjectId
+from enum import Enum
+
+
+class PyObjectId(ObjectId):
+    """Validador personalizado para ObjectId de MongoDB"""
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid ObjectId")
+        return ObjectId(v)
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, field_schema):
+        field_schema.update(type="string")
+
+
+class LoanType(str, Enum):
+    """Tipos de préstamo"""
+    SALA = "sala"
+    DOMICILIO = "domicilio"
+
+
+class LoanStatus(str, Enum):
+    """Estados del préstamo"""
+    ACTIVO = "activo"
+    DEVUELTO = "devuelto"
+    VENCIDO = "vencido"
+
 
 class LoanBase(BaseModel):
-    usuario_id: str
+    """Esquema base de préstamo"""
+    item_id: str = Field(..., description="ID del ejemplar prestado")
+    user_id: str = Field(..., description="ID del usuario que realiza el préstamo")
     tipo_prestamo: LoanType
-    fecha_prestamo: datetime
-    hora_prestamo: str
-    fecha_devolucion: datetime
-    hora_devolucion: str
-    fecha_devolucion_real: Optional[datetime] = None
-    hora_devolucion_real: Optional[str] = None
 
-class LoanCreate(BaseModel):
-    usuario_id: str
-    tipo_prestamo: LoanType
-    ejemplares_ids: List[str] = Field(..., min_items=1)
-    duracion_dias: Optional[int] = Field(None, ge=1)
 
-class LoanUpdate(BaseModel):
-    fecha_devolucion_real: Optional[datetime] = None
-    hora_devolucion_real: Optional[str] = None
+class LoanCreate(LoanBase):
+    """Esquema para crear préstamo"""
+    pass
 
-class LoanItem(BaseModel):
-    ejemplar_id: str
-    fecha_devolucion: datetime
-    hora_devolucion: str
-    estado: LoanStatus = LoanStatus.ACTIVO
 
 class LoanInDB(LoanBase):
-    id: str
-    items: List[LoanItem]
-    estado_general: LoanStatus
-    created_at: datetime
-    updated_at: datetime
+    """Esquema de préstamo en base de datos"""
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    fecha_prestamo: datetime = Field(default_factory=datetime.utcnow)
+    fecha_devolucion_pactada: datetime
+    fecha_devolucion_real: Optional[datetime] = None
+    estado: LoanStatus = LoanStatus.ACTIVO
 
     class Config:
-        from_attributes = True
+        populate_by_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+        json_schema_extra = {
+            "example": {
+                "item_id": "507f1f77bcf86cd799439011",
+                "user_id": "507f1f77bcf86cd799439012",
+                "tipo_prestamo": "domicilio",
+                "estado": "activo"
+            }
+        }
 
-class LoanResponse(LoanBase):
-    id: str
-    items: List[LoanItem]
-    estado_general: LoanStatus
-    created_at: datetime
+
+class LoanResponse(BaseModel):
+    """Esquema de respuesta de préstamo"""
+    id: str = Field(..., alias="_id")
+    item_id: str
+    user_id: str
+    tipo_prestamo: LoanType
+    fecha_prestamo: datetime
+    fecha_devolucion_pactada: datetime
+    fecha_devolucion_real: Optional[datetime]
+    estado: LoanStatus
+
+    class Config:
+        populate_by_name = True
+
+
+class LoanReturn(BaseModel):
+    """Esquema para devolver un préstamo"""
+    loan_id: str
+

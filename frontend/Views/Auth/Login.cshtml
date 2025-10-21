@@ -1,0 +1,56 @@
+@model frontend.Models.LoginDto
+
+@{
+    ViewData["Title"] = "Ingreso al sistema";
+    // Indica al _Layout que oculte header/footer para esta vista
+    ViewData["HideLayout"] = true;
+}
+
+<div class="login-page">
+    <div class="login-card">
+        <img src="/lib/images/logo.png" alt="Biblioteca" class="brand-logo" onerror="this.style.display='none'" />
+        <div class="brand-subtitle">INGRESO AL SISTEMA</div>
+
+        <form asp-action="Login" method="post">
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Rut</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label">Contraseña</label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 text-end">
+                <a asp-action="ForgotPassword" class="muted-link">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <div class="mb-3 login-actions">
+                <button type="submit" class="btn btn-primary">Ingresar</button>
+            </div>
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <div class="login-footer">
+                <a asp-action="Register" class="muted-link">Registrarse</a>
+                <a href="@Url.Action("Index", "Home", new { anonymous = "true" })" class="muted-link">Continuar sin iniciar</a>
+            </div>
+
+            <div class="login-copyright">© Biblioteca Municipal 2025.</div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add any client-side validation or enhancements here
+    </script>
+}

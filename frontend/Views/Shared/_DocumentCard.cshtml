@@ -1,0 +1,25 @@
+
+@model frontend.Models.DocumentDto
+<div class="card h-100 document-card">
+    <div class="card-body text-center">
+        <div class="doc-cover-placeholder mb-3"></div>
+        <div class="fw-bold small text-uppercase mb-1">@Model?.Titulo ?? "TÍTULO"</div>
+        <div class="text-muted small mb-1">@Model?.Autor ?? "Autor"</div>
+    </div>
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <div>
+            @if (Model != null && Model.ItemsDisponibles > 0)
+            {
+                <span class="badge bg-success">Disponible</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">No disponible</span>
+            }
+        </div>
+        <div class="small text-end">
+            <a href="#" class="text-muted" style="font-size:11px;">Lista de espera</a>
+        </div>
+    </div>
+</div>
+

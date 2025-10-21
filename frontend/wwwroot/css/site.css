@@ -1,0 +1,157 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+/* No forzamos un margin-bottom global; el footer ahora se comporta de forma normal */
+body {
+  margin-bottom: 0;
+}
+
+/* Login page styles moved from inline to global */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3fbf6;
+  padding: 40px 0;
+}
+.login-card {
+  width: 420px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 34px 40px;
+  border: 1px solid #e0e6e3;
+}
+.brand-logo {
+  width: 180px;
+  height: 125px;
+  display: block;
+  margin: 0 auto 0 auto;
+}
+.brand-subtitle {
+  text-align: center;
+  font-weight: 700;
+  font-size: 22px;
+  color: #314a49;
+  margin-top: 0px;
+  margin-bottom: 20px;
+}
+.login-actions .btn-primary {
+  background: #364f4f;
+  border-color: #364f4f;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 6px;
+}
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-weight: 600;
+}
+.muted-link { color: #2e6b63; }
+.login-copyright { text-align:center; margin-top:18px; color:#6a6a6a; font-size:12px; }
+
+/* Anonymous topbar and sidebar styles */
+.anonymous-topbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e9ecef;
+  padding: 10px 0;
+}
+.anonymous-topbar .top-left { width: 200px; }
+.anonymous-topbar .top-left { width: 220px; }
+.anonymous-topbar .top-left a { display:inline-block; margin-left: 24px; }
+.anonymous-topbar .top-search { max-width: 980px; display:flex; justify-content:center; margin-left: 130px;}
+.anonymous-topbar .top-search form { width:100%; max-width:1200px; }
+.anonymous-topbar .top-right { width: 140px; text-align: right; }
+
+.sidebar-card .card-body { padding: 16px; }
+.sidebar-card ul { padding-left: 0; }
+.sidebar-card ul li { list-style: none; margin-bottom: 8px; }
+
+/* Catalog layout adjustments: larger content area, moved left */
+.catalog-content {
+  max-width: 1280px;
+  margin-left: 40px; /* shift content more to the left */
+  margin-right: auto;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+@media (min-width: 992px) {
+  .sidebar-card { border-right: 1px solid #eee; }
+}
+
+@media (max-width: 480px) {
+  .login-card { width: calc(100% - 40px); padding: 20px; }
+  .brand-logo { width: 72px; height: 72px; margin-bottom:12px; }
+  .brand-title { font-size:18px; }
+  .brand-subtitle { font-size:16px; }
+}
+
+/* Document card and catalog visual tweaks to match wireframe */
+.document-card { border-radius:6px; border:1px solid #eee; }
+.doc-cover-placeholder { height:120px; background:#e9e9e9; border-radius:4px; }
+.document-card .card-body { padding:12px; }
+.document-card .card-footer { padding:10px; background:transparent; border-top:0; }
+
+.document-card .card-footer .badge { font-size:11px; padding:6px 8px; }
+.document-card .card-body .fw-bold.small { font-size:12px; }
+
+/* Section separators (small pink line centered) */
+.section-sep { height:4px; width:40px; background:#000; margin:18px 0; border-radius:2px; }
+
+/* Sidebar adjustments to mimic the left vertical nav style */
+.sidebar-card { background:transparent; border:0; }
+.sidebar-card .card-body { padding:6px 12px; }
+.sidebar-card ul li a { color:#333; display:block; padding:6px 0; text-decoration:none; }
+.sidebar-card ul li a:hover { text-decoration:underline; }
+
+/* Make the catalog area use the full container width and align with sidebar */
+.catalog-content { max-width: 1280px; margin-left: 40px; margin-right: auto; padding-left: 8px; padding-right:8px; }
+
+/* Larger covers and card paddings to fill horizontal space */
+.doc-cover-placeholder { height:180px; background:#e9e9e9; border-radius:4px; }
+.document-card .card-body { padding:16px; }
+.document-card .card-footer .badge { font-size:12px; padding:6px 10px; }
+.document-card .card-body .fw-bold.small { font-size:14px; }
+
+/* Increase card width allocation on large viewports so cards fill more space */
+@media (min-width: 992px) {
+  .catalog-content .row > .col-md-3 { flex: 0 0 24%; max-width: 24%; }
+  .catalog-content .row > .col-md-2 { flex: 0 0 16%; max-width: 16%; }
+}
+
+/* Footer style matching the wireframe: multiple columns, icons left */
+.site-footer { background:#f8f8f8; border-top:1px solid #eaeaea; padding:40px 0; }
+.site-footer .footer-inner { max-width:1180px; margin:0 auto; }
+.site-footer .brand-col { width:200px; }
+.site-footer .brand-col .brand-name { font-weight:700; margin-bottom:12px; margin-left: 12px; }
+.site-footer .social-icons a { display:inline-block; width:34px; height:34px; line-height:34px; text-align:center; border-radius:6px; background:#fff; color:#333; margin-right:8px; border:1px solid #e6e6e6; }
+.site-footer .link-col h6 { font-size:13px; margin-bottom:12px; color:#333; }
+.site-footer .link-col ul { padding-left:0; list-style:none; }
+.site-footer .link-col ul li { margin-bottom:8px; }
+.site-footer .link-col ul li a { color:#666; text-decoration:none; }
+.site-footer .link-col ul li a:hover { text-decoration:underline; }
+
+@media (max-width: 768px) {
+  .site-footer { padding:24px 0; }
+  .site-footer .brand-col { width:100%; margin-bottom:12px; }
+}

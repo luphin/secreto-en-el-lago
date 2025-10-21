@@ -1,412 +1,491 @@
-# Sistema de Biblioteca Municipal - Backend
+# Sistema de Préstamo BEC - Backend
 
-Backend desarrollado con FastAPI para el sistema de préstamos de la Biblioteca Municipal de Estación Central.
+Backend del sistema de gestión de préstamos de la Biblioteca de Estación Central (BEC), construido con FastAPI, MongoDB, Kafka y Docker.
 
-## Características
+## 🏗️ Arquitectura
 
-- **Gestión de Usuarios**: Registro, autenticación y roles (Admin, Bibliotecario, Administrativo, Usuario)
-- **Catálogo Digital**: Búsqueda y consulta de documentos y multimedia
-- **Sistema de Préstamos**: Préstamos en sala y a domicilio con control de vencimientos
-- **Reservas**: Sistema de reservas de documentos
-- **Notificaciones**: Emails automáticos para verificación, recordatorios y sanciones
-- **Monitoreo**: Dashboard Grafana con métricas en tiempo real
-- **Logs Estructurados**: Sistema de logging con Loki y Prometheus
-- **Mensajería**: Kafka para procesamiento asíncrono de eventos ([Documentación email](docs/email.md))
+El sistema está construido con una arquitectura de microservicios que incluye:
 
-## Arquitectura
+- **FastAPI**: Framework web moderno para construir APIs RESTful
+- **MongoDB**: Base de datos NoSQL para almacenamiento de datos
+- **Apache Kafka**: Sistema de mensajería para procesos asíncronos y notificaciones
+- **MinIO**: Almacenamiento de objetos S3-compatible para archivos biométricos
+- **Loki + Promtail**: Agregación y recolección de logs
+- **Grafana**: Visualización de métricas y logs
+- **Docker**: Containerización de toda la aplicación
 
-```bash
-biblioteca-backend/
-├── app/
-│ ├── config/ # Configuración y base de datos
-│ ├── models/ # Modelos de Pydantic
-│ ├── schemas/ # Esquemas y tipos de datos
-│ ├── services/ # Lógica de negocio
-│ ├── routes/ # Endpoints de la API
-│ ├── middleware/ # Middleware de autenticación y logging
-│ ├── monitoring/ # Métricas y monitoreo
-│ └── utils/ # Utilidades y helpers
-├── scripts/ # Scripts de BD e inicialización
-├── kafka/ # Configuración de Kafka
-├── grafana/ # Dashboards y configuración
-└── monitoring/ # Configuración de Prometheus y Loki
-```
+## 📋 Características Principales
 
-## Prerrequisitos
+### Fase 1 - Core ✅
 
-- Docker y Docker Compose
-- Python 3.11+
-- MongoDB Atlas (o local)
-- Cuenta de email para notificaciones
+- ✅ Autenticación JWT con roles (Lector, Bibliotecario, Administrativo)
+- ✅ Gestión completa de usuarios (CRUD)
+- ✅ Gestión de colección bibliográfica (documentos y ejemplares)
+- ✅ Sistema de préstamos y devoluciones
+- ✅ Sistema de reservas
+- ✅ Cálculo automático de sanciones por atraso
+- ✅ Consulta pública del catálogo sin autenticación
 
-## Instalación
+### Fase 2 - Estadísticas ✅
 
-1. Clonar el repositorio
+- ✅ Historial de préstamos por usuario
+- ✅ Documentos más populares
+- ✅ Usuarios más activos
+- ✅ Dashboard con métricas generales
+- ✅ Exportación de reportes a CSV
 
+### Fase 3 - Notificaciones ✅
+
+- ✅ Integración completa con Kafka
+- ✅ Servicio consumidor de emails (worker)
+- ✅ Notificación de activación de cuenta
+- ✅ Recordatorios de préstamos vencidos
+- ✅ Notificación de sanciones
+- ✅ Proceso batch para préstamos vencidos
+
+### Fase 4 - Monitoreo ✅
+
+- ✅ Integración con MinIO para fotos y huellas
+- ✅ Endpoints de upload de archivos
+- ✅ Configuración de Loki para logs
+- ✅ Promtail para recolección de logs
+- ✅ Dashboards en Grafana
+
+**🎉 TODAS LAS FASES COMPLETADAS**
+
+## 🚀 Inicio Rápido
+
+### Prerrequisitos
+
+- Docker y Docker Compose instalados
+- Python 3.11+ (para desarrollo local)
+
+### Instalación con Docker (Recomendado)
+
+1. **Clonar el repositorio**
 ```bash
 git clone <repository-url>
-cd biblioteca-backend
+cd backend
 ```
 
-2. Configurar variables de entorno
+2. **Configurar variables de entorno**
+```bash
+cp env.example .env
+# Editar .env con tus configuraciones
+```
 
-Agregar `.env`
+3. **Iniciar todos los servicios**
+```bash
+docker-compose up -d
+```
 
-3. Construir y ejecutar con Docker
+4. **Verificar que los servicios estén corriendo**
+```bash
+docker-compose ps
+```
+
+La API estará disponible en: `http://localhost:8000`
+
+### Instalación Local (Desarrollo)
+
+1. **Crear entorno virtual**
+```bash
+python -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+```
+
+2. **Instalar dependencias**
+```bash
+pip install -r requirements.txt
+```
+
+3. **Configurar variables de entorno**
+```bash
+cp env.example .env
+# Editar .env con tus configuraciones
+```
+
+4. **Iniciar solo las dependencias (MongoDB, Kafka, etc.)**
+```bash
+docker-compose up -d mongodb kafka zookeeper minio loki grafana
+```
+
+5. **Ejecutar la aplicación**
+```bash
+uvicorn app.main:app --reload
+```
+
+6. **Ejecutar el worker de notificaciones (opcional)**
+```bash
+python -m app.services.notification_consumer
+```
+
+## 📚 Documentación de la API
+
+Una vez que la aplicación esté corriendo, puedes acceder a la documentación interactiva en:
+
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+## 🗂️ Estructura del Proyecto
+
+```
+backend/
+├── app/
+│   ├── api/
+│   │   ├── dependencies.py      # Dependencias compartidas (auth, permisos)
+│   │   └── v1/
+│   │       ├── endpoints/       # Endpoints de la API
+│   │       │   ├── auth.py     # Autenticación y registro
+│   │       │   ├── users.py    # Gestión de usuarios
+│   │       │   ├── documents.py # Documentos bibliográficos
+│   │       │   ├── items.py    # Ejemplares
+│   │       │   ├── loans.py    # Préstamos
+│   │       │   ├── reservations.py # Reservas
+│   │       │   ├── files.py    # Upload de archivos
+│   │       │   └── statistics.py # Estadísticas y reportes
+│   │       └── router.py       # Router principal
+│   ├── core/
+│   │   ├── config.py           # Configuración de la aplicación
+│   │   ├── database.py         # Conexión a MongoDB
+│   │   ├── security.py         # Utilidades de seguridad (JWT, hashing)
+│   │   ├── kafka_producer.py   # Productor de eventos Kafka
+│   │   └── storage.py          # Gestor de MinIO/S3
+│   ├── models/                 # Modelos Pydantic
+│   │   ├── user.py
+│   │   ├── document.py
+│   │   ├── item.py
+│   │   ├── loan.py
+│   │   └── reservation.py
+│   ├── services/               # Lógica de negocio
+│   │   ├── user_service.py
+│   │   ├── document_service.py
+│   │   ├── item_service.py
+│   │   ├── loan_service.py
+│   │   ├── reservation_service.py
+│   │   ├── notification_consumer.py # Worker de emails
+│   │   └── batch_jobs.py      # Trabajos programados
+│   └── main.py                 # Punto de entrada de la aplicación
+├── scripts/                    # Scripts de utilidad
+│   ├── init_db.py             # Inicializar BD
+│   ├── run_batch_jobs.sh      # Ejecutar trabajos batch
+│   └── setup_cron.sh          # Configurar cron
+├── grafana/                    # Configuración de Grafana
+│   ├── provisioning/          # Datasources y dashboards
+│   └── dashboards/            # Dashboards JSON
+├── docker-compose.yml          # Orquestación completa
+├── Dockerfile                  # Imagen del backend
+├── Dockerfile.consumer         # Imagen del worker
+├── Dockerfile.batch            # Imagen de batch jobs
+├── loki-config.yaml           # Configuración de Loki
+├── promtail-config.yaml       # Configuración de Promtail
+├── requirements.txt
+├── README.md
+├── QUICKSTART.md
+├── FEATURES.md
+├── DEPLOYMENT_GUIDE.md
+├── IMPLEMENTATION_SUMMARY.md
+├── CHANGELOG.md
+└── env.example
+```
+
+## 🎯 Estado del Proyecto:
+
+- **Fase 1**: ✅ COMPLETADA (100%)
+- **Fase 2**: ✅ COMPLETADA (100%)
+- **Fase 3**: ✅ COMPLETADA (100%)
+- **Fase 4**: ✅ COMPLETADA (100%)
+
+**🚀 Sistema 100% Funcional y Production-Ready**
+
+## 🔑 Endpoints Principales
+
+### Autenticación
+- `POST /api/v1/auth/register` - Registrar nuevo usuario
+- `POST /api/v1/auth/login` - Iniciar sesión
+- `POST /api/v1/auth/activate/{user_id}` - Activar cuenta
+
+### Usuarios
+- `GET /api/v1/users/me` - Obtener perfil actual
+- `GET /api/v1/users/` - Listar usuarios (staff)
+- `PUT /api/v1/users/{user_id}` - Actualizar usuario
+
+### Documentos
+- `GET /api/v1/documents/` - Listar catálogo (público)
+- `GET /api/v1/documents/{id}` - Ver documento (público)
+- `POST /api/v1/documents/` - Crear documento (staff)
+- `PUT /api/v1/documents/{id}` - Actualizar documento (staff)
+
+### Ejemplares
+- `GET /api/v1/items/` - Listar ejemplares
+- `POST /api/v1/items/` - Crear ejemplar (staff)
+- `PUT /api/v1/items/{id}` - Actualizar ejemplar (staff)
+
+### Préstamos
+- `POST /api/v1/loans/` - Registrar préstamo (staff)
+- `GET /api/v1/loans/` - Listar préstamos
+- `GET /api/v1/loans/overdue` - Listar vencidos (staff)
+- `POST /api/v1/loans/{id}/return` - Devolver préstamo (staff)
+
+### Reservas
+- `POST /api/v1/reservations/` - Crear reserva
+- `GET /api/v1/reservations/` - Listar reservas
+- `POST /api/v1/reservations/{id}/cancel` - Cancelar reserva
+- `POST /api/v1/reservations/{id}/complete` - Completar reserva (staff)
+
+### Archivos
+- `POST /api/v1/files/upload/photo` - Subir foto de usuario
+- `POST /api/v1/files/upload/fingerprint` - Subir huella digital
+- `DELETE /api/v1/files/delete/photo` - Eliminar foto
+
+### Estadísticas y Reportes
+- `GET /api/v1/statistics/loans/history` - Historial de préstamos
+- `GET /api/v1/statistics/documents/popular` - Documentos más populares
+- `GET /api/v1/statistics/users/active` - Usuarios más activos
+- `GET /api/v1/statistics/dashboard` - Dashboard general
+- `GET /api/v1/statistics/export/loans` - Exportar préstamos a CSV
+
+## 🔐 Roles y Permisos
+
+### Lector (Usuario Regular)
+- Ver catálogo público
+- Crear reservas
+- Ver sus propios préstamos y reservas
+- Actualizar su perfil
+- Subir foto y huella digital
+
+### Bibliotecario
+- Todos los permisos de Lector
+- Gestionar documentos y ejemplares
+- Registrar y devolver préstamos
+- Ver información de todos los usuarios
+- Gestionar reservas
+- Ver estadísticas
+
+### Administrativo
+- Todos los permisos de Bibliotecario
+- Gestionar usuarios
+- Ver reportes completos
+- Exportar datos
+- Revisar préstamos vencidos
+
+## 🗄️ Base de Datos
+
+### Colecciones MongoDB
+
+1. **users** - Usuarios del sistema
+2. **documents** - Documentos bibliográficos
+3. **items** - Ejemplares físicos
+4. **loans** - Préstamos
+5. **reservations** - Reservas
+
+Ver `plan.md` para el esquema detallado de cada colección.
+
+## 📊 Servicios Adicionales
+
+### MongoDB
+- **Puerto**: 27017
+- **Base de datos**: bec_biblioteca
+
+### Kafka
+- **Puerto**: 9092
+- **Tópicos**: 
+  - `email-notifications` - Notificaciones por email
+  - `overdue-checks` - Verificación de préstamos vencidos
+
+### MinIO
+- **Puerto API**: 9000
+- **Puerto Console**: 9001
+- **Usuario**: minioadmin
+- **Contraseña**: minioadmin
+- **Bucket**: bec-biometrics
+
+### Loki + Promtail
+- **Puerto Loki**: 3100
+- **Retención**: 7 días
+- **Logs**: Todos los contenedores Docker
+
+### Grafana
+- **Puerto**: 3000
+- **Usuario**: admin
+- **Contraseña**: admin
+- **Dashboards**: Pre-configurados para logs del sistema
+
+## 🔧 Configuración
+
+Todas las configuraciones se gestionan a través de variables de entorno. Ver `env.example` para la lista completa de opciones.
+
+### Variables Importantes
+
+- `SECRET_KEY`: Clave secreta para JWT (¡cambiar en producción!)
+- `MONGODB_URL`: URL de conexión a MongoDB
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: Tiempo de expiración de tokens
+- `LOAN_DAYS_HOME`: Días de préstamo a domicilio (default: 7)
+- `LOAN_HOURS_ROOM`: Horas de préstamo en sala (default: 4)
+- `SANCTION_MULTIPLIER`: Multiplicador de sanción por atraso (default: 2)
+- `KAFKA_BOOTSTRAP_SERVERS`: Servidor de Kafka
+- `STORAGE_ENDPOINT`: Endpoint de MinIO/S3
+- `EMAIL_ENABLED`: Activar envío real de emails
+- `EMAIL_API_KEY`: API key de SendGrid/Mailgun
+
+## 🔄 Trabajos Batch
+
+### Configurar Cron Jobs
 
 ```bash
-docker-compose up --build
+chmod +x scripts/setup_cron.sh
+./scripts/setup_cron.sh
 ```
 
-## Usos
+Esto configurará:
+- Verificación diaria de préstamos vencidos (2 AM)
+- Expiración de reservas antiguas (2 AM)
+- Envío de recordatorios por email
 
-### Servicios disponibles
-
-- API Backend: http://localhost:8000
-- Documentación API: http://localhost:8000/docs
-- Grafana: http://localhost:3000 (admin/admin123)
-- Kafka UI: http://localhost:8080
-
-### Usuarios de prueba
-
-- Administrador: admin@biblioteca.cl / secret
-- Bibliotecario: bibliotecario@biblioteca.cl / secret
-- Administrativo: administrativo@biblioteca.cl / secret
-- Usuario: usuario@biblioteca.cl / secret
-
-
-## Ejemplos API
+### Ejecutar Manualmente
 
 ```bash
-# Autenticación
-curl -X POST "http://localhost:8000/api/v1/auth/login" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=admin@biblioteca.cl&password=secret"
+# Dentro del contenedor
+docker exec bec_backend python -m app.services.batch_jobs
 
-# Consultar catálogo
-curl -X GET "http://localhost:8000/api/v1/documents/"
-
-# Crear préstamo
-curl -X POST "http://localhost:8000/api/v1/loans/" \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "usuario_id": "user-id",
-    "tipo_prestamo": "domicilio",
-    "ejemplares_ids": ["ejemplar-id-1", "ejemplar-id-2"]
-  }'
+# Localmente
+python -m app.services.batch_jobs
 ```
 
-## Diagrama de clases
+## 🚧 Desarrollo
 
-```mermaid
-classDiagram
-    class Usuario {
-        +String id
-        +String rut
-        +String nombres
-        +String apellidos
-        +String email
-        +String telefono
-        +String direccion
-        +UserRole rol
-        +UserStatus estado
-        +Boolean email_verificado
-        +DateTime created_at
-        +registrar()
-        +autenticar()
-        +actualizar()
-    }
+### Agregar una Nueva Funcionalidad
 
-    class Documento {
-        +String id
-        +String titulo
-        +String autor
-        +DocumentType tipo
-        +DocumentCategory categoria
-        +MediaFormat formato_medio
-        +String editorial
-        +Integer ano_edicion
-        +Integer numero_ejemplares
-        +Integer ejemplares_disponibles
-        +DateTime created_at
-        +crear()
-        +actualizar()
-        +buscar()
-    }
+1. Crear el modelo en `app/models/`
+2. Crear el servicio en `app/services/`
+3. Crear los endpoints en `app/api/v1/endpoints/`
+4. Registrar el router en `app/api/v1/router.py`
+5. Actualizar la documentación
 
-    class Ejemplar {
-        +String id
-        +String documento_id
-        +String codigo_ubicacion
-        +EjemplarStatus estado
-        +DateTime created_at
-        +marcar_prestado()
-        +marcar_disponible()
-    }
+### Convenciones de Código
 
-    class Prestamo {
-        +String id
-        +String usuario_id
-        +LoanType tipo_prestamo
-        +DateTime fecha_prestamo
-        +DateTime fecha_devolucion
-        +LoanStatus estado_general
-        +List~LoanItem~ items
-        +crear()
-        +devolver()
-        +extender()
-        +calcular_vencimiento()
-    }
+- Usar type hints en todas las funciones
+- Documentar funciones con docstrings
+- Seguir PEP 8
+- Nombres en español para dominio de negocio
+- Nombres en inglés para código técnico
 
-    class Solicitud {
-        +String id
-        +String usuario_id
-        +RequestType tipo_solicitud
-        +RequestStatus estado
-        +DateTime fecha_solicitud
-        +List~RequestItem~ items
-        +crear()
-        +procesar()
-        +cancelar()
-    }
+## 🧪 Inicializar Base de Datos
 
-    class Sancion {
-        +String id
-        +String usuario_id
-        +String prestamo_id
-        +SancionType tipo
-        +Integer dias_sancion
-        +DateTime fecha_inicio
-        +DateTime fecha_fin
-        +SancionStatus estado
-        +aplicar()
-        +verificar()
-    }
-
-    class Notificacion {
-        +String id
-        +String usuario_id
-        +NotificationType tipo
-        +String asunto
-        +String mensaje
-        +NotificationStatus estado
-        +enviar()
-    }
-
-    %% Relaciones principales
-    Usuario "1" -- "*" Prestamo : realiza
-    Usuario "1" -- "*" Solicitud : crea
-    Usuario "1" -- "*" Sancion : recibe
-    Usuario "1" -- "*" Notificacion : recibe
-    
-    Documento "1" -- "*" Ejemplar : contiene
-    Ejemplar "1" -- "*" Prestamo : prestado_en
-    Documento "1" -- "*" Solicitud : solicitado_en
-    
-    Prestamo "1" -- "*" Sancion : genera
-    Prestamo "1" -- "*" Notificacion : notifica
-
-    %% Relaciones con Enums
-    Usuario --> UserRole : utiliza
-    Usuario --> UserStatus : utiliza
-    
-    Documento --> DocumentType : utiliza
-    Documento --> DocumentCategory : utiliza
-    Documento --> MediaFormat : utiliza
-    Documento --> DocumentStatus : utiliza
-    
-    Ejemplar --> EjemplarStatus : utiliza
-    
-    Prestamo --> LoanType : utiliza
-    Prestamo --> LoanStatus : utiliza
-    
-    Solicitud --> RequestType : utiliza
-    Solicitud --> RequestStatus : utiliza
-    
-    Sancion --> SancionType : utiliza
-    Sancion --> SancionStatus : utiliza
-    
-    Notificacion --> NotificationType : utiliza
-    Notificacion --> NotificationStatus : utiliza
-
-    %% Definición de Enumeraciones
-    class UserRole {
-        <<enumeration>>
-        ADMIN
-        LIBRARIAN
-        ADMINISTRATIVE
-        USER
-    }
-
-    class UserStatus {
-        <<enumeration>>
-        PENDING
-        ACTIVE
-        INACTIVE
-        SUSPENDED
-    }
-
-    class DocumentType {
-        <<enumeration>>
-        LIBRO
-        AUDIO
-        VIDEO
-        REVISTA
-        PERIODICO
-    }
-
-    class DocumentCategory {
-        <<enumeration>>
-        LITERATURA_CHILENA
-        LITERATURA_ESPANOLA
-        LITERATURA_INGLESA
-        LITERATURA_UNIVERSAL
-        TECNICO_ESPANOL
-        TECNICO_INGLES
-        CIENCIAS
-        HISTORIA
-        FILOSOFIA
-        ARTE
-        PELICULA
-        DOCUMENTAL
-        MUSICA
-        AUDIOLIBRO
-        SONIDOS
-    }
-
-    class MediaFormat {
-        <<enumeration>>
-        CASSETTE
-        CD
-        DVD
-        BLURAY
-        DIGITAL
-        VINILO
-    }
-
-    class DocumentStatus {
-        <<enumeration>>
-        DISPONIBLE
-        PRESTADO
-        RESERVADO
-        MANTENCION
-        PERDIDO
-    }
-
-    class EjemplarStatus {
-        <<enumeration>>
-        DISPONIBLE
-        PRESTADO_SALA
-        PRESTADO_DOMICILIO
-        RESERVADO
-        MANTENCION
-        PERDIDO
-    }
-
-    class LoanType {
-        <<enumeration>>
-        SALA
-        DOMICILIO
-    }
-
-    class LoanStatus {
-        <<enumeration>>
-        ACTIVO
-        DEVUELTO
-        VENCIDO
-        MORA
-    }
-
-    class RequestType {
-        <<enumeration>>
-        PRESTAMO
-        RESERVA
-    }
-
-    class RequestStatus {
-        <<enumeration>>
-        PENDIENTE
-        PROCESADA
-        CANCELADA
-        RECHAZADA
-    }
-
-    class SancionType {
-        <<enumeration>>
-        RETRASO
-        PERDIDA
-        DANIO
-    }
-
-    class SancionStatus {
-        <<enumeration>>
-        ACTIVA
-        CUMPLIDA
-        CANCELADA
-    }
-
-    class NotificationType {
-        <<enumeration>>
-        PRESTAMO_VENCIDO
-        RESERVA_DISPONIBLE
-        CUENTA_ACTIVADA
-        BIENVENIDA
-        SANCION
-    }
-
-    class NotificationStatus {
-        <<enumeration>>
-        PENDIENTE
-        ENVIADA
-        FALLIDA
-    }
-
-    %% Relaciones de composición/agregación
-    Prestamo *-- LoanItem : contiene
-    Solicitud *-- RequestItem : contiene
-
-    class LoanItem {
-        +String ejemplar_id
-        +DateTime fecha_devolucion
-        +String hora_devolucion
-        +LoanStatus estado
-    }
-
-    class RequestItem {
-        +String documento_id
-        +RequestStatus estado
-    }
-```
-
-## Troubleshooting
-
-### Problemas comunes
-
-1. Error de conexión a MongoDB
-
-- Verificar `MONGODB_URL` en .env
-- Verificar red y firewall
-
-2. Error de mail
-
-- Verificar credenciales SMTP
-- Usar "App Password" en Gmail
-
-3. Kaftka no inicia
-
-- Verificar que Docker tenga suficientes recursos
-- Revisar logs: `docker-compose logs kafka`
-
-## Logs
+Para cargar datos de ejemplo:
 
 ```bash
-# Ver logs de la aplicación
-docker-compose logs app
+# Instalar dependencias
+pip3 install -r requirements.txt
 
-# Ver logs de Kafka
-docker-compose logs kafka
-
-# Ver logs de Grafana
-docker-compose logs grafana
+# Ejecutar script
+python3 scripts/init_db.py
 ```
+
+Esto creará:
+- 3 usuarios de prueba (admin, bibliotecario, lector)
+- 5 documentos bibliográficos
+- 10 ejemplares disponibles
+
+### Usuarios de Prueba
+
+**Administrativo**
+- Email: admin@bec.cl
+- Password: admin123
+
+**Bibliotecario**
+- Email: bibliotecaria@bec.cl
+- Password: biblio123
+
+**Lector**
+- Email: lector@example.com
+- Password: lector123
+
+## 📈 Monitoreo
+
+### Ver Logs en Tiempo Real
+
+```bash
+# Logs del backend
+docker logs -f bec_backend
+
+# Logs del worker de notificaciones
+docker logs -f bec_notification_worker
+
+# Todos los logs
+docker-compose logs -f
+```
+
+### Acceder a Grafana
+
+1. Abrir http://localhost:3000
+2. Login: admin / admin
+3. Ir a Dashboards → BEC Dashboards
+4. Ver logs en tiempo real
+
+## 🐛 Solución de Problemas
+
+### Puerto ya en uso
+
+Si el puerto 8000 ya está en uso, puedes cambiarlo en `docker-compose.yml`:
+
+```yaml
+services:
+  backend:
+    ports:
+      - "8001:8000"  # Cambiar el primer número
+```
+
+### MongoDB no inicia
+
+Asegúrate de tener suficiente espacio en disco y que el puerto 27017 esté libre.
+
+### Ver logs
+
+```bash
+# Ver logs de todos los servicios
+docker-compose logs -f
+
+# Ver logs solo del backend
+docker-compose logs -f backend
+```
+
+## 🛑 Detener el Sistema
+
+```bash
+docker-compose down
+```
+
+Para detener y eliminar todos los datos:
+
+```bash
+docker-compose down -v
+```
+
+## 📖 Documentación Adicional
+
+- [QUICKSTART.md](QUICKSTART.md) - Guía de inicio rápido
+- [FEATURES.md](FEATURES.md) - Lista detallada de características
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Guía de despliegue en producción
+- [CHANGELOG.md](CHANGELOG.md) - Historial de cambios
+- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Resumen técnico
+
+## 📝 Licencia
+
+[Especificar licencia]
+
+## 👥 Contribuidores
+
+[Listar contribuidores]
+
+## 📞 Contacto
+
+[Información de contacto]
+
+---
+
+**Versión**: 1.0.0
+**Estado**: Production Ready ✨
+**Última actualización**: Octubre 2025
+
+**Nota**: Para más detalles sobre todas las funcionalidades, consulta [FEATURES.md](FEATURES.md)
