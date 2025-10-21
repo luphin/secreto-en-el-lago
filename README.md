@@ -1,5 +1,6 @@
 [![Abrir en Figma](https://img.shields.io/badge/Figma-Design-blue?logo=figma)](https://www.figma.com/design/khz4CZWwUWkym0Egrsx7mc/Caso16_SecretoEnElLago?node-id=0-1)
 
+
 # Proyecto Sistema de Préstamo en Biblioteca Municipal (Caso 16) 
 
 Este proyecto tiene como objetivo automatizar gran parte de los servicios de la **Biblioteca de Estación Central (BEC)**, que actualmente enfrenta problemas de eficiencia debido al aumento de usuarios. El sistema de préstamo y gestión actual, que utiliza fichas de papel y catálogos físicos, se ha vuelto un "cuello de botella" y ha llevado a procesos de recuperación de documentos lentos y a una disminución en la satisfacción de los usuarios.
@@ -20,7 +21,7 @@ El nuevo sistema incluirá las siguientes funcionalidades principales:
 
 ## Roadmap
 
-- Desarrollo de backend [README backend](backend/README.md) EN DESARROLLO!
+- Desarrollo de backend [README backend](backend/README.md)
 - Implementación de frontend
 - Sistema de reportes avanzados
 - Integración con sistemas de pago para multas
