@@ -280,19 +280,25 @@ classDiagram
 
     %% User Hierarchy
     UserBase <|-- UserCreate
+    UserBase <|-- UserUpdate
     UserBase <|-- UserResponse
     UserResponse --> UserRole
     UserCreate --> UserRole
+    UserUpdate --> UserRole
 
     %% Document Hierarchy
     DocumentBase <|-- DocumentCreate
+    DocumentBase <|-- DocumentUpdate
     DocumentBase <|-- DocumentResponse
     DocumentResponse --> DocumentType
+    DocumentUpdate --> DocumentType
 
     %% Item Hierarchy
     ItemBase <|-- ItemCreate
+    ItemBase <|-- ItemUpdate
     ItemBase <|-- ItemResponse
     ItemResponse --> ItemStatus
+    ItemUpdate --> ItemStatus
     ItemResponse --> DocumentResponse : references
 
     %% Loan Hierarchy
@@ -310,17 +316,33 @@ classDiagram
     ReservationResponse --> DocumentResponse : references
     ReservationResponse --> UserResponse : references
 
-    %% Statistics
+    %% Statistics - Derived from main entities
     LoanHistoryResponse --> DocumentInfo
     LoanHistoryResponse --> LoanType
     LoanHistoryResponse --> LoanStatus
+    LoanHistoryResponse ..> LoanResponse : derived from
+    LoanHistoryResponse ..> UserResponse : for user
+    
     DocumentInfo --> DocumentType
+    DocumentInfo ..> DocumentResponse : derived from
+    
     PopularDocumentResponse --> DocumentType
+    PopularDocumentResponse ..> DocumentResponse : aggregates
+    PopularDocumentResponse ..> LoanResponse : counts from
+    
+    ActiveUserResponse ..> UserResponse : derived from
+    ActiveUserResponse ..> LoanResponse : counts from
 
     DashboardStatistics --> UserStats
     DashboardStatistics --> CollectionStats
     DashboardStatistics --> LoanStats
     DashboardStatistics --> ReservationStats
+    
+    UserStats ..> UserResponse : aggregates
+    CollectionStats ..> DocumentResponse : aggregates
+    CollectionStats ..> ItemResponse : aggregates
+    LoanStats ..> LoanResponse : aggregates
+    ReservationStats ..> ReservationResponse : aggregates
 
     %% Authentication
     LoginDto ..> Token : returns
@@ -330,6 +352,11 @@ classDiagram
     UserResponse --> FileUploadResponse : uploads photo
     UserResponse --> FingerprintUploadResponse : uploads fingerprint
 ```
+> [!Note]
+> **Leyenda del Diagrama:**<br>
+> - Línea sólida con flecha cerrada (`<|--`): Herencia<br>
+> - Línea sólida con flecha abierta (`-->`): Composición/Asociación fuerte<br>
+> - Línea punteada con flecha abierta (`..>`): Dependencia/Derivación
 
 ## Descripción de Contratos
 
