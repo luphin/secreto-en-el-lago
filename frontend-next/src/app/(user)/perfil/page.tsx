@@ -9,11 +9,17 @@ import {
   Button,
   Card,
   HStack,
+  Text,
 } from "@chakra-ui/react";
 import { UserNav } from "@/components/user/UserNav";
 import { Field } from "@/components/ui/field";
+import { useAuth } from "@/contexts/AuthContext";
+import { toaster } from "@/components/ui/toaster";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function PerfilPage() {
+  const { user } = useAuth();
+
   return (
     <Box minH="100vh" bg="bg.canvas">
       <UserNav />
@@ -21,6 +27,9 @@ export default function PerfilPage() {
       <Container maxW="container.md">
         <VStack align="stretch" gap={6}>
           <Heading size="2xl">Mi Perfil</Heading>
+          <Text color="gray.500" fontSize="sm" mt={2}>
+            {user?._id}
+          </Text>
 
           <Card.Root p={8}>
             <VStack align="stretch" gap={6}>
@@ -28,20 +37,24 @@ export default function PerfilPage() {
                 Informacion personal
               </Heading>
 
-              <Field label="Nombre completo">
-                <Input defaultValue="Juan Perez" size="lg" />
+              <Field label="Nombres">
+                <Input defaultValue={user?.nombres} size="lg" />
+              </Field>
+
+              <Field label="Apellidos">
+                <Input defaultValue={user?.apellidos} size="lg" />
               </Field>
 
               <Field label="Correo electronico">
-                <Input defaultValue="juan@email.com" size="lg" type="email" />
+                <Input defaultValue={user?.email} size="lg" type="email" />
               </Field>
 
               <Field label="Telefono">
-                <Input defaultValue="+56 9 1234 5678" size="lg" type="tel" />
+                <Input defaultValue={user?.telefono} size="lg" type="tel" />
               </Field>
 
               <Field label="Direccion">
-                <Input defaultValue="Calle Ejemplo 123, Santiago" size="lg" />
+                <Input defaultValue={user?.direccion} size="lg" />
               </Field>
 
               <HStack justify="end" gap={4} mt={4}>
@@ -62,15 +75,15 @@ export default function PerfilPage() {
               </Heading>
 
               <Field label="Contrasena actual">
-                <Input type="password" placeholder="********" size="lg" />
+                <PasswordInput placeholder="********" size="lg" />
               </Field>
 
               <Field label="Nueva contrasena">
-                <Input type="password" placeholder="********" size="lg" />
+                <PasswordInput placeholder="********" size="lg" />
               </Field>
 
               <Field label="Confirmar nueva contrasena">
-                <Input type="password" placeholder="********" size="lg" />
+                <PasswordInput placeholder="********" size="lg" />
               </Field>
 
               <HStack justify="end" gap={4} mt={4}>
