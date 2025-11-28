@@ -16,8 +16,7 @@ export function BookCard({ title, author, imageUrl, available }: BookCardProps) 
       borderRadius="lg"
       overflow="hidden"
       p={4}
-      minW="200px"
-      maxW="200px"
+      w="full"
       transition="all 0.2s"
       _hover={{
         shadow: "lg",
@@ -46,10 +45,10 @@ export function BookCard({ title, author, imageUrl, available }: BookCardProps) 
         </Box>
 
         <VStack align="start" gap={1}>
-          <Text fontWeight="bold" fontSize="sm" noOfLines={2} minH="40px">
+          <Text fontWeight="bold" fontSize="sm" lineClamp={2} minH="40px">
             {title}
           </Text>
-          <Text fontSize="xs" color="gray.600" noOfLines={1}>
+          <Text fontSize="xs" color="gray.600" lineClamp={1}>
             {author}
           </Text>
           <Tag.Root

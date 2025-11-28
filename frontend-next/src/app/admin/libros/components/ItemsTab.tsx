@@ -14,7 +14,7 @@ import {
     Badge,
     IconButton,
 } from "@chakra-ui/react";
-import { LuPlus, LuPencil, LuTrash2, LuSearch } from "react-icons/lu";
+import { LuPlus, LuPencil, LuTrash2, LuSearch, LuBookOpen } from "react-icons/lu";
 import { toaster } from "@/components/ui/toaster";
 import ItemService from "@/services/item.service";
 import DocumentService from "@/services/document.service";
@@ -22,6 +22,8 @@ import type { ItemResponse } from "@/types/item.types";
 import type { DocumentResponse } from "@/types/document.types";
 import { ItemFormDialog } from "./ItemFormDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { QuickLoanDialog } from "./QuickLoanDialog";
+import { ItemStatus } from "@/types/item.types";
 
 export function ItemsTab() {
     const [items, setItems] = useState<ItemResponse[]>([]);
@@ -30,7 +32,9 @@ export function ItemsTab() {
     const [searchDocId, setSearchDocId] = useState("");
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isQuickLoanOpen, setIsQuickLoanOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ItemResponse | null>(null);
+    const [selectedItemForLoan, setSelectedItemForLoan] = useState<string>("");
 
     useEffect(() => {
         loadItems();
@@ -128,6 +132,17 @@ export function ItemsTab() {
         }
     };
 
+    const handleLoanClick = (item: ItemResponse) => {
+        setSelectedItemForLoan(item._id);
+        setIsQuickLoanOpen(true);
+    };
+
+    const handleLoanSuccess = () => {
+        setIsQuickLoanOpen(false);
+        setSelectedItemForLoan("");
+        loadItems();
+    };
+
     const handleFormSuccess = () => {
         setIsFormOpen(false);
         setSelectedItem(null);
@@ -222,6 +237,16 @@ export function ItemsTab() {
                                         </Table.Cell>
                                         <Table.Cell>
                                             <HStack gap={2}>
+                                                {item.estado === ItemStatus.DISPONIBLE && (
+                                                    <IconButton
+                                                        size="sm"
+                                                        onClick={() => handleLoanClick(item)}
+                                                        aria-label="Prestar"
+                                                        colorPalette="green"
+                                                    >
+                                                        <LuBookOpen />
+                                                    </IconButton>
+                                                )}
                                                 <IconButton
                                                     size="sm"
                                                     onClick={() => handleEdit(item)}
@@ -269,6 +294,17 @@ export function ItemsTab() {
                 onConfirm={handleDeleteConfirm}
                 title="Eliminar Ejemplar"
                 message="¿Está seguro que desea eliminar este ejemplar?"
+            />
+
+            {/* Quick Loan Dialog */}
+            <QuickLoanDialog
+                isOpen={isQuickLoanOpen}
+                onClose={() => {
+                    setIsQuickLoanOpen(false);
+                    setSelectedItemForLoan("");
+                }}
+                itemId={selectedItemForLoan}
+                onSuccess={handleLoanSuccess}
             />
         </VStack>
     );

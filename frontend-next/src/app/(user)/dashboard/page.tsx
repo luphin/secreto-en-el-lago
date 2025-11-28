@@ -18,8 +18,15 @@ import { UserNav } from "@/components/user/UserNav";
 import { LuBook, LuClock, LuCircleCheck, LuCircleAlert, LuCalendar } from "react-icons/lu";
 import { useAuth } from "@/contexts/AuthContext";
 import LoanService from "@/services/loan.service";
-import type { LoanResponse } from "@/types/loan.types";
+import { LoanStatus, type LoanResponse } from "@/types/loan.types";
 import { UserRole } from "@/types/auth.types";
+
+const stats = [
+  { icon: LuBook, label: "Préstamos activos", value: "3", color: "blue" },
+  { icon: LuClock, label: "Reservas pendientes", value: "1", color: "orange" },
+  { icon: LuCircleCheck, label: "Libros devueltos", value: "12", color: "green" },
+  { icon: LuCircleAlert, label: "Por vencer", value: "1", color: "red" },
+];
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -33,18 +40,7 @@ export default function DashboardPage() {
 
   const isStaff = user?.rol === UserRole.BIBLIOTECARIO || user?.rol === UserRole.ADMINISTRATIVO;
 
-  // Calcular estadísticas dinámicas
-  const activeLoansCount = userLoans.length >= 10 ? "+9" : userLoans.length.toString();
-  const overdueCount = overdueLoans.length.toString();
-
-  const stats = [
-    { icon: LuBook, label: "Préstamos activos", value: activeLoansCount, color: "blue" },
-    { icon: LuClock, label: "Reservas pendientes", value: "0", color: "orange" },
-    { icon: LuCircleCheck, label: "Libros devueltos", value: "0", color: "green" },
-    { icon: LuCircleAlert, label: "Por vencer", value: overdueCount, color: "red" },
-  ];
-
-  // Cargar préstamos vencidos 
+  // Cargar préstamos vencidos (solo para staff)
   useEffect(() => {
     const loadOverdueLoans = async () => {
       if (!user || isLoadingLoans) return;
@@ -69,7 +65,7 @@ export default function DashboardPage() {
 
     setIsLoadingLoans(true);
     try {
-      const loans = await LoanService.getUserLoans(pageNum * 10, 10);
+      const loans = await LoanService.getUserLoans(pageNum * 10, 10, LoanStatus.ACTIVO);
 
       if (loans.length < 10) {
         setHasMore(false);

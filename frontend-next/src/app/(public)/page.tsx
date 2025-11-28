@@ -15,7 +15,7 @@ import { Header } from "@/components/catalog/Header";
 import { Sidebar } from "@/components/catalog/Sidebar";
 import { BookCard } from "@/components/catalog/BookCard";
 import { LuDownload, LuVideo, LuHeadphones } from "react-icons/lu";
-import { CarouselStatic }from "@/components/catalog/Carousel";
+import { CarouselStatic } from "@/components/catalog/Carousel";
 
 // Datos de ejemplo
 const featuredBooks = [
@@ -69,11 +69,11 @@ export default function CatalogPage() {
         <Box
           as="main"
           flex="1"
-					//overflowY="auto"
-					//maxH={{ base: "auto", md: "calc(100vh - 80px)"}}
+        //overflowY="auto"
+        //maxH={{ base: "auto", md: "calc(100vh - 80px)"}}
         >
           <Container maxW="container.xl" py={8}>
-						<CarouselStatic />
+            <CarouselStatic />
 
             <VStack align="stretch" gap={12}>
               {/* Sección Destacados */}
@@ -81,36 +81,16 @@ export default function CatalogPage() {
                 <Heading size="xl" mb={4} color="gray.800">
                   Destacados
                 </Heading>
-                <Box
-                  overflowX="auto"
-                  pb={4}
-                  css={{
-                    "&::-webkit-scrollbar": {
-                      height: "8px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                      background: "#f1f1f1",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "#888",
-                      borderRadius: "4px",
-                    },
-                    "&::-webkit-scrollbar-thumb:hover": {
-                      background: "#555",
-                    },
-                  }}
-                >
-                  <HStack gap={4} align="stretch">
-                    {featuredBooks.map((book) => (
-                      <BookCard
-                        key={book.id}
-                        title={book.title}
-                        author={book.author}
-                        available={book.available}
-                      />
-                    ))}
-                  </HStack>
-                </Box>
+                <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={4}>
+                  {featuredBooks.map((book) => (
+                    <BookCard
+                      key={book.id}
+                      title={book.title}
+                      author={book.author}
+                      available={book.available}
+                    />
+                  ))}
+                </SimpleGrid>
               </Box>
 
               {/* Sección Nuevos Ingresos */}
@@ -118,36 +98,16 @@ export default function CatalogPage() {
                 <Heading size="xl" mb={4} color="gray.800">
                   Nuevos ingresos
                 </Heading>
-                <Box
-                  overflowX="auto"
-                  pb={4}
-                  css={{
-                    "&::-webkit-scrollbar": {
-                      height: "8px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                      background: "#f1f1f1",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "#888",
-                      borderRadius: "4px",
-                    },
-                    "&::-webkit-scrollbar-thumb:hover": {
-                      background: "#555",
-                    },
-                  }}
-                >
-                  <HStack gap={4} align="stretch">
-                    {newBooks.map((book) => (
-                      <BookCard
-                        key={book.id}
-                        title={book.title}
-                        author={book.author}
-                        available={book.available}
-                      />
-                    ))}
-                  </HStack>
-                </Box>
+                <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={4}>
+                  {newBooks.map((book) => (
+                    <BookCard
+                      key={book.id}
+                      title={book.title}
+                      author={book.author}
+                      available={book.available}
+                    />
+                  ))}
+                </SimpleGrid>
               </Box>
 
               {/* Sección Recursos Digitales */}

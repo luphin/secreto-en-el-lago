@@ -3,15 +3,15 @@
  * Maneja operaciones relacionadas con préstamos de libros
  */
 import apiClient from "@/lib/api";
-import type { LoanResponse, LoanCreate } from "@/types/loan.types";
+import type { LoanResponse, LoanCreate, LoanStatus } from "@/types/loan.types";
 
 export class LoanService {
     /**
      * Obtiene los préstamos del usuario actual
      */
-    static async getUserLoans(skip: number = 0, limit: number = 10): Promise<LoanResponse[]> {
+    static async getUserLoans(skip: number = 0, limit: number = 10, estado: LoanStatus): Promise<LoanResponse[]> {
         const response = await apiClient.get<LoanResponse[]>("/loans/", {
-            params: { skip, limit },
+            params: { skip, limit, estado },
         });
         return response.data;
     }
