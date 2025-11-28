@@ -27,6 +27,15 @@ async def init_database():
     await db.items.delete_many({})
     await db.loans.delete_many({})
     await db.reservations.delete_many({})
+
+    print("🔧 Creando índices...")
+    # Crear índice único para id_fisico en documentos
+    await db.documents.create_index("id_fisico", unique=True)
+    # Crear índice único para rut en usuarios
+    await db.users.create_index("rut", unique=True)
+    # Crear índice único para email en usuarios
+    await db.users.create_index("email", unique=True)
+    print("✅ Índices creados")
     
     print("👥 Creando usuarios de ejemplo...")
     
@@ -78,6 +87,7 @@ async def init_database():
     # Documentos de ejemplo
     documents = [
         {
+            "id_fisico": "LIB-001-2024",
             "titulo": "Cien años de soledad",
             "autor": "Gabriel García Márquez",
             "editorial": "Editorial Sudamericana",
@@ -87,6 +97,7 @@ async def init_database():
             "categoria": "Novela"
         },
         {
+            "id_fisico": "LIB-002-2024",
             "titulo": "El Principito",
             "autor": "Antoine de Saint-Exupéry",
             "editorial": "Reynal & Hitchcock",
@@ -96,6 +107,7 @@ async def init_database():
             "categoria": "Fábula"
         },
         {
+            "id_fisico": "LIB-003-2024",
             "titulo": "1984",
             "autor": "George Orwell",
             "editorial": "Secker & Warburg",
@@ -105,6 +117,7 @@ async def init_database():
             "categoria": "Ciencia Ficción"
         },
         {
+            "id_fisico": "LIB-004-2024",
             "titulo": "Don Quijote de la Mancha",
             "autor": "Miguel de Cervantes",
             "editorial": "Francisco de Robles",
@@ -114,6 +127,7 @@ async def init_database():
             "categoria": "Novela"
         },
         {
+            "id_fisico": "LIB-005-2024",
             "titulo": "La Odisea",
             "autor": "Homero",
             "editorial": "Antigüedad Clásica",

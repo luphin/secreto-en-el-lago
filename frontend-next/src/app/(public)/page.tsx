@@ -15,6 +15,7 @@ import { Header } from "@/components/catalog/Header";
 import { Sidebar } from "@/components/catalog/Sidebar";
 import { BookCard } from "@/components/catalog/BookCard";
 import { LuDownload, LuVideo, LuHeadphones } from "react-icons/lu";
+import { CarouselStatic }from "@/components/catalog/Carousel";
 
 // Datos de ejemplo
 const featuredBooks = [
@@ -72,6 +73,8 @@ export default function CatalogPage() {
 					//maxH={{ base: "auto", md: "calc(100vh - 80px)"}}
         >
           <Container maxW="container.xl" py={8}>
+						<CarouselStatic />
+
             <VStack align="stretch" gap={12}>
               {/* Sección Destacados */}
               <Box id="destacados">

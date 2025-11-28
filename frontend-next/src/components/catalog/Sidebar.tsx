@@ -27,12 +27,11 @@ export function Sidebar({ currentSection }: SidebarProps) {
       borderRightWidth="1px"
       overflowY="auto"
     >
-      <VStack align="stretch" gap={4}>
-        <Text fontSize="xl" fontWeight="bold" mb={2}>
-          Navegación
-        </Text>
-
+      <VStack align="stretch" gap={4} justifyContent="space-between" h="full">
         <VStack align="stretch" gap={2}>
+					<Text fontSize="xl" fontWeight="bold" mb={2}>
+						Navegación
+					</Text>
           {sections.map((section) => (
             <Link
               key={section.id}
