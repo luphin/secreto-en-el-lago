@@ -2,7 +2,7 @@
 
 ```mermaid
 graph TB
-    subgraph Frontend["FRONTEND (ASP.NET MVC)"]
+    subgraph Frontend["FRONTEND (Next.js(React) MVC)"]
         AuthController["AuthController<br/>Login/Register/Logout"]
         UserController["UserController<br/>Profile/Index"]
         LoanController["LoanController<br/>Index/Create/Return"]
