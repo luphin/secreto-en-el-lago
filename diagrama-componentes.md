@@ -141,7 +141,7 @@ graph TB
 
 ## Descripción de Componentes
 
-### Frontend (Next.js(React) MVC)
+### Frontend (Next.js-React MVC)
 - **Controllers**: Manejan las peticiones HTTP del usuario y hacen llamadas al backend
 - **Models/DTOs**: Objetos de transferencia de datos para comunicación con API
 
