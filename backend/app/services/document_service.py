@@ -18,6 +18,11 @@ class DocumentService:
     
     async def create_document(self, document: DocumentCreate) -> dict:
         """Crea un nuevo documento"""
+        # Verificar que el id_fisico sea único
+        existing = await self.collection.find_one({"id_fisico": document.id_fisico})
+        if existing:
+            raise ValueError(f"Ya existe un documento con el id_fisico: {document.id_fisico}")
+
         document_dict = document.model_dump()
         result = await self.collection.insert_one(document_dict)
         document_dict["_id"] = result.inserted_id
@@ -28,6 +33,10 @@ class DocumentService:
         if not ObjectId.is_valid(document_id):
             return None
         return await self.collection.find_one({"_id": ObjectId(document_id)})
+
+    async def get_document_by_physical_id(self, id_fisico: str) -> Optional[dict]:
+        """Obtiene un documento por su ID físico"""
+        return await self.collection.find_one({"id_fisico": id_fisico})
     
     async def get_documents(
         self,
@@ -70,12 +79,21 @@ class DocumentService:
         """Actualiza un documento"""
         if not ObjectId.is_valid(document_id):
             return None
-        
+
         update_data = document_update.model_dump(exclude_unset=True)
-        
+
         if not update_data:
             return await self.get_document_by_id(document_id)
-        
+
+        # Si se está actualizando id_fisico, verificar que sea único
+        if "id_fisico" in update_data:
+            existing = await self.collection.find_one({
+                "id_fisico": update_data["id_fisico"],
+                "_id": {"$ne": ObjectId(document_id)}
+            })
+            if existing:
+                raise ValueError(f"Ya existe un documento con el id_fisico: {update_data['id_fisico']}")
+
         result = await self.collection.find_one_and_update(
             {"_id": ObjectId(document_id)},
             {"$set": update_data},

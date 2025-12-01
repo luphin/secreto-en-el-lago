@@ -23,10 +23,18 @@ async def create_document(
     Requiere rol de bibliotecario o administrativo.
     """
     doc_service = DocumentService(db)
-    new_doc = await doc_service.create_document(document)
-    
+
+    try:
+        new_doc = await doc_service.create_document(document)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
     return DocumentResponse(
         _id=str(new_doc["_id"]),
+        id_fisico=new_doc["id_fisico"],
         titulo=new_doc["titulo"],
         autor=new_doc["autor"],
         editorial=new_doc["editorial"],
@@ -66,6 +74,7 @@ async def list_documents(
     return [
         DocumentResponse(
             _id=str(doc["_id"]),
+            id_fisico=doc["id_fisico"],
             titulo=doc["titulo"],
             autor=doc["autor"],
             editorial=doc["editorial"],
@@ -78,6 +87,27 @@ async def list_documents(
         )
         for doc in documents
     ]
+
+
+@router.get("/by-physical-id/{id_fisico}")
+async def get_document_id_by_physical_id(id_fisico: str, db=Depends(get_database)):
+    """
+    Obtiene el ID de un documento por su ID físico.
+    No requiere autenticación.
+    """
+    doc_service = DocumentService(db)
+    document = await doc_service.get_document_by_physical_id(id_fisico)
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No se encontró un documento con id_fisico: {id_fisico}"
+        )
+
+    return {
+        "id_fisico": id_fisico,
+        "document_id": str(document["_id"])
+    }
 
 
 @router.get("/{document_id}", response_model=DocumentResponse)
@@ -97,9 +127,10 @@ async def get_document(document_id: str, db=Depends(get_database)):
     
     # Obtener disponibilidad
     items_disponibles = await doc_service._count_available_items(document_id)
-    
+
     return DocumentResponse(
         _id=str(document["_id"]),
+        id_fisico=document["id_fisico"],
         titulo=document["titulo"],
         autor=document["autor"],
         editorial=document["editorial"],
@@ -124,18 +155,26 @@ async def update_document(
     Requiere rol de bibliotecario o administrativo.
     """
     doc_service = DocumentService(db)
-    updated_doc = await doc_service.update_document(document_id, document_update)
-    
+
+    try:
+        updated_doc = await doc_service.update_document(document_id, document_update)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
     if not updated_doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Documento no encontrado"
         )
-    
+
     items_disponibles = await doc_service._count_available_items(document_id)
-    
+
     return DocumentResponse(
         _id=str(updated_doc["_id"]),
+        id_fisico=updated_doc["id_fisico"],
         titulo=updated_doc["titulo"],
         autor=updated_doc["autor"],
         editorial=updated_doc["editorial"],
