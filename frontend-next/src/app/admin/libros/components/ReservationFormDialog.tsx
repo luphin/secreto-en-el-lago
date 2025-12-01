@@ -10,6 +10,7 @@ import {
 import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster";
 import ReservationService from "@/services/reservation.service";
+import DocumentService from "@/services/document.service";
 import type { ReservationCreate } from "@/types/reservation.types";
 
 interface ReservationFormDialogProps {
@@ -19,37 +20,61 @@ interface ReservationFormDialogProps {
 }
 
 export function ReservationFormDialog({ isOpen, onClose, onSuccess }: ReservationFormDialogProps) {
-    const [formData, setFormData] = useState<ReservationCreate>({
-        document_id: "",
-        user_id: "",
-        fecha_reserva: "",
-    });
+    const [physicalId, setPhysicalId] = useState("");
+    const [userId, setUserId] = useState("");
+    const [reservationDate, setReservationDate] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!physicalId.trim() || !userId.trim() || !reservationDate) {
+            toaster.create({
+                title: "Error de validación",
+                description: "Por favor completa todos los campos",
+                type: "error",
+            });
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            await ReservationService.createReservation(formData);
+            // 1. Obtener document_id usando el ID físico
+            const { document_id } = await DocumentService.getDocumentByPhysicalId(physicalId);
+
+            // 2. Crear la reserva
+            const reservationData: ReservationCreate = {
+                document_id,
+                user_id: userId,
+                fecha_reserva: new Date(reservationDate).toISOString(),
+            };
+
+            await ReservationService.createReservation(reservationData);
+
             toaster.create({
-                title: "Éxito",
-                description: "Reserva creada correctamente",
+                title: "¡Reserva creada exitosamente!",
+                description: `Reserva para el libro ${physicalId} registrada correctamente`,
                 type: "success",
+                duration: 5000,
             });
+
             onSuccess();
+
             // Reset form
-            setFormData({
-                document_id: "",
-                user_id: "",
-                fecha_reserva: "",
-            });
+            setPhysicalId("");
+            setUserId("");
+            setReservationDate("");
         } catch (error: any) {
             console.error("Error creating reservation:", error);
+
+            const errorMessage = error.response?.data?.detail || "No se pudo crear la reserva. Verifica que el ID físico sea correcto.";
+
             toaster.create({
-                title: "Error",
-                description: error.response?.data?.detail || "No se pudo crear la reserva",
+                title: "Error al crear reserva",
+                description: errorMessage,
                 type: "error",
+                duration: 5000,
             });
         } finally {
             setIsSubmitting(false);
@@ -68,29 +93,30 @@ export function ReservationFormDialog({ isOpen, onClose, onSuccess }: Reservatio
                     <Dialog.Body>
                         <form onSubmit={handleSubmit}>
                             <VStack gap={4}>
-                                <Field label="ID del Documento" required>
+                                <Field label="ID Físico del Libro" required helperText="Ejemplo: LIB-015-2024">
                                     <Input
-                                        value={formData.document_id}
-                                        onChange={(e) => setFormData({ ...formData, document_id: e.target.value })}
-                                        placeholder="ID del documento"
+                                        value={physicalId}
+                                        onChange={(e) => setPhysicalId(e.target.value)}
+                                        placeholder="LIB-XXX-XXXX"
                                         required
                                     />
                                 </Field>
 
                                 <Field label="ID del Usuario" required>
                                     <Input
-                                        value={formData.user_id}
-                                        onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
+                                        value={userId}
+                                        onChange={(e) => setUserId(e.target.value)}
                                         placeholder="ID del usuario"
                                         required
                                     />
                                 </Field>
 
-                                <Field label="Fecha de Reserva" required>
+                                <Field label="Fecha de Reserva" required helperText="Selecciona cuándo recogerá el libro">
                                     <Input
-                                        type="datetime-local"
-                                        value={formData.fecha_reserva}
-                                        onChange={(e) => setFormData({ ...formData, fecha_reserva: e.target.value })}
+                                        type="date"
+                                        value={reservationDate}
+                                        onChange={(e) => setReservationDate(e.target.value)}
+                                        min={new Date().toISOString().split('T')[0]}
                                         required
                                     />
                                 </Field>

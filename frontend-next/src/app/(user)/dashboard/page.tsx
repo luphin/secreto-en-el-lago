@@ -15,6 +15,7 @@ import {
   Stack,
   Button,
   Tabs,
+  Accordion,
 } from "@chakra-ui/react";
 import { UserNav } from "@/components/user/UserNav";
 import { QuickReservationDialog } from "@/components/user/QuickReservationDialog";
@@ -166,6 +167,16 @@ export default function DashboardPage() {
     }
   };
 
+  const calculateLateFee = (loan: LoanResponse): { daysLate: number; feeAmount: number } => {
+    const dueDate = new Date(loan.fecha_devolucion_pactada);
+    const now = new Date();
+    const diffTime = now.getTime() - dueDate.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const daysLate = Math.max(0, diffDays);
+    const feeAmount = daysLate * 500; // $500 por día
+    return { daysLate, feeAmount };
+  };
+
   const getReservationStatusColor = (estado: string) => {
     switch (estado) {
       case "pendiente":
@@ -244,63 +255,6 @@ export default function DashboardPage() {
             })}
           </SimpleGrid>
 
-          {/* Préstamos Vencidos (solo para staff) */}
-
-          <Box>
-            <Heading size="xl" mb={4} color="red.600">
-              <HStack>
-                <LuCircleAlert />
-                <Text>Préstamos Vencidos</Text>
-              </HStack>
-            </Heading>
-
-            {isLoadingOverdue ? (
-              <Box textAlign="center" py={8}>
-                <Spinner size="lg" color="red.500" />
-              </Box>
-            ) : overdueLoans.length === 0 ? (
-              <Card.Root p={6}>
-                <Text color="gray.600" textAlign="center">
-                  No hay préstamos vencidos
-                </Text>
-              </Card.Root>
-            ) : (
-              <VStack align="stretch" gap={4}>
-                {overdueLoans.map((loan) => (
-                  <Card.Root key={loan._id} p={6} borderLeftWidth="4px" borderLeftColor="red.500">
-                    <HStack justify="space-between" align="start">
-                      <VStack align="start" gap={2} flex="1">
-                        <HStack>
-                          <Badge colorPalette={getStatusColor(loan.estado)}>
-                            {loan.estado.toUpperCase()}
-                          </Badge>
-                          <Badge colorPalette="purple">
-                            {loan.tipo_prestamo.toUpperCase()}
-                          </Badge>
-                        </HStack>
-                        <Text fontSize="sm" color="gray.600">
-                          ID: {loan.item_id}
-                        </Text>
-                        <Text fontSize="sm" color="gray.600">
-                          Usuario: {loan.user_id}
-                        </Text>
-                      </VStack>
-                      <VStack align="end" gap={1}>
-                        <HStack color="gray.600" fontSize="sm">
-                          <LuCalendar size={16} />
-                          <Text>Vencimiento:</Text>
-                        </HStack>
-                        <Text fontWeight="bold" color="red.600">
-                          {formatDate(loan.fecha_devolucion_pactada)}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                  </Card.Root>
-                ))}
-              </VStack>
-            )}
-          </Box>
-
 
           {/* Mis Préstamos y Reservas - Tabs */}
           <Box>
@@ -334,39 +288,162 @@ export default function DashboardPage() {
                       </Text>
                     </Card.Root>
                   ) : (
-                    <VStack align="stretch" gap={4}>
-                      {userLoans.map((loan) => (
-                        <Card.Root key={loan._id} p={6}>
-                          <HStack justify="space-between" align="start">
-                            <VStack align="start" gap={2} flex="1">
-                              <HStack>
-                                <Badge colorPalette={getStatusColor(loan.estado)}>
-                                  {loan.estado.toUpperCase()}
-                                </Badge>
-                                <Badge colorPalette="purple">
-                                  {loan.tipo_prestamo.toUpperCase()}
-                                </Badge>
-                              </HStack>
-                              <Text fontSize="sm" color="gray.600">
-                                ID del ejemplar: {loan.item_id}
-                              </Text>
-                              <HStack color="gray.600" fontSize="sm">
-                                <LuClock size={16} />
-                                <Text>Prestado: {formatDate(loan.fecha_prestamo)}</Text>
-                              </HStack>
-                            </VStack>
-                            <VStack align="end" gap={1}>
-                              <HStack color="gray.600" fontSize="sm">
-                                <LuCalendar size={16} />
-                                <Text>Devolver antes de:</Text>
-                              </HStack>
-                              <Text fontWeight="bold" color="blue.600">
-                                {formatDate(loan.fecha_devolucion_pactada)}
-                              </Text>
-                            </VStack>
+                    <VStack align="stretch" gap={6}>
+                      {/* Préstamos Vencidos */}
+                      {userLoans.filter(loan => new Date(loan.fecha_devolucion_pactada) < new Date()).length > 0 && (
+                        <Box>
+                          <HStack mb={4}>
+                            <LuCircleAlert size={20} color="red" />
+                            <Heading size="lg" color="red.600">
+                              Préstamos Vencidos ({userLoans.filter(loan => new Date(loan.fecha_devolucion_pactada) < new Date()).length})
+                            </Heading>
                           </HStack>
-                        </Card.Root>
-                      ))}
+                          <VStack align="stretch" gap={4}>
+                            {userLoans
+                              .filter(loan => new Date(loan.fecha_devolucion_pactada) < new Date())
+                              .map((loan) => {
+                                const { daysLate, feeAmount } = calculateLateFee(loan);
+                                return (
+                                  <Card.Root key={loan._id} borderColor="red.300" borderWidth="2px">
+                                    <Accordion.Root collapsible>
+                                      <Accordion.Item value={loan._id}>
+                                        <Accordion.ItemTrigger p={6} cursor="pointer" _hover={{ bg: "red.50" }}>
+                                          <HStack justify="space-between" align="start" w="full">
+                                            <VStack align="start" gap={2} flex="1">
+                                              <HStack>
+                                                <Badge colorPalette="red">
+                                                  VENCIDO
+                                                </Badge>
+                                                <Badge colorPalette="purple">
+                                                  {loan.tipo_prestamo.toUpperCase()}
+                                                </Badge>
+                                                <Badge colorPalette="orange" variant="subtle">
+                                                  {daysLate} {daysLate === 1 ? 'día' : 'días'} de atraso
+                                                </Badge>
+                                              </HStack>
+                                              <Text fontSize="sm" color="gray.600">
+                                                ID del ejemplar: {loan.item_id}
+                                              </Text>
+                                              <HStack color="gray.600" fontSize="sm">
+                                                <LuClock size={16} />
+                                                <Text>Prestado: {formatDate(loan.fecha_prestamo)}</Text>
+                                              </HStack>
+                                            </VStack>
+                                            <VStack align="end" gap={1}>
+                                              <HStack color="red.600" fontSize="sm">
+                                                <LuCalendar size={16} />
+                                                <Text>Debió devolverse:</Text>
+                                              </HStack>
+                                              <Text fontWeight="bold" color="red.600" fontSize="lg">
+                                                {formatDate(loan.fecha_devolucion_pactada)}
+                                              </Text>
+                                              <Text fontSize="xs" color="red.500" fontWeight="semibold">
+                                                Click para ver multa
+                                              </Text>
+                                            </VStack>
+                                          </HStack>
+                                        </Accordion.ItemTrigger>
+
+                                        <Accordion.ItemContent>
+                                          <Box px={6} pb={6}>
+                                            <Box p={4} bg="red.50" borderRadius="md" borderWidth="1px" borderColor="red.200">
+                                              <VStack align="stretch" gap={3}>
+                                                <HStack justify="space-between">
+                                                  <Text fontSize="sm" color="red.700" fontWeight="semibold">
+                                                    💰 Información de Multa por Atraso
+                                                  </Text>
+                                                </HStack>
+
+                                                <HStack justify="space-between" p={2} bg="white" borderRadius="md">
+                                                  <Text fontSize="sm" color="gray.700">
+                                                    Días de atraso:
+                                                  </Text>
+                                                  <Badge colorPalette="red" size="lg">
+                                                    {daysLate} {daysLate === 1 ? 'día' : 'días'}
+                                                  </Badge>
+                                                </HStack>
+
+                                                <HStack justify="space-between" p={2} bg="white" borderRadius="md">
+                                                  <Text fontSize="sm" color="gray.700">
+                                                    Tarifa por día:
+                                                  </Text>
+                                                  <Text fontWeight="semibold">$500</Text>
+                                                </HStack>
+
+                                                <Box h="1px" bg="red.200" />
+
+                                                <HStack justify="space-between" p={3} bg="red.100" borderRadius="md">
+                                                  <Text fontSize="md" fontWeight="bold" color="red.700">
+                                                    Total a pagar:
+                                                  </Text>
+                                                  <Text fontSize="2xl" fontWeight="bold" color="red.600">
+                                                    ${feeAmount.toLocaleString('es-CL')}
+                                                  </Text>
+                                                </HStack>
+
+                                                <Text fontSize="xs" color="gray.600" textAlign="center" mt={1}>
+                                                  ⚠️ Debes pagar esta multa al devolver el libro en biblioteca
+                                                </Text>
+                                              </VStack>
+                                            </Box>
+                                          </Box>
+                                        </Accordion.ItemContent>
+                                      </Accordion.Item>
+                                    </Accordion.Root>
+                                  </Card.Root>
+                                );
+                              })}
+                          </VStack>
+                        </Box>
+                      )}
+
+                      {/* Préstamos Activos */}
+                      {userLoans.filter(loan => new Date(loan.fecha_devolucion_pactada) >= new Date()).length > 0 && (
+                        <Box>
+                          <HStack mb={4}>
+                            <LuBook size={20} color="blue" />
+                            <Heading size="lg" color="blue.600">
+                              Préstamos Activos ({userLoans.filter(loan => new Date(loan.fecha_devolucion_pactada) >= new Date()).length})
+                            </Heading>
+                          </HStack>
+                          <VStack align="stretch" gap={4}>
+                            {userLoans
+                              .filter(loan => new Date(loan.fecha_devolucion_pactada) >= new Date())
+                              .map((loan) => (
+                                <Card.Root key={loan._id} p={6}>
+                                  <HStack justify="space-between" align="start">
+                                    <VStack align="start" gap={2} flex="1">
+                                      <HStack>
+                                        <Badge colorPalette={getStatusColor(loan.estado)}>
+                                          {loan.estado.toUpperCase()}
+                                        </Badge>
+                                        <Badge colorPalette="purple">
+                                          {loan.tipo_prestamo.toUpperCase()}
+                                        </Badge>
+                                      </HStack>
+                                      <Text fontSize="sm" color="gray.600">
+                                        ID del ejemplar: {loan.item_id}
+                                      </Text>
+                                      <HStack color="gray.600" fontSize="sm">
+                                        <LuClock size={16} />
+                                        <Text>Prestado: {formatDate(loan.fecha_prestamo)}</Text>
+                                      </HStack>
+                                    </VStack>
+                                    <VStack align="end" gap={1}>
+                                      <HStack color="gray.600" fontSize="sm">
+                                        <LuCalendar size={16} />
+                                        <Text>Devolver antes de:</Text>
+                                      </HStack>
+                                      <Text fontWeight="bold" color="blue.600">
+                                        {formatDate(loan.fecha_devolucion_pactada)}
+                                      </Text>
+                                    </VStack>
+                                  </HStack>
+                                </Card.Root>
+                              ))}
+                          </VStack>
+                        </Box>
+                      )}
 
                       {/* Infinite scroll trigger */}
                       <div ref={observerTarget} style={{ height: "20px" }}>
