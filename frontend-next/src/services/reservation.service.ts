@@ -21,16 +21,6 @@ export class ReservationService {
     }
 
     /**
-     * Obtiene las reservas de un usuario específico
-     */
-    static async getUserReservations(userId: string, skip: number = 0, limit: number = 100): Promise<ReservationResponse[]> {
-        const response = await apiClient.get<ReservationResponse[]>("/reservations/", {
-            params: { skip, limit, user_id: userId }
-        });
-        return response.data;
-    }
-
-    /**
      * Obtiene una reserva por su ID
      */
     static async getReservationById(reservationId: string): Promise<ReservationResponse> {

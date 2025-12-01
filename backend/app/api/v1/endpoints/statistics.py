@@ -35,16 +35,7 @@ async def get_loan_history(
     for loan in loans:
         item = await db.items.find_one({"_id": ObjectId(loan["item_id"])})
         if item:
-            # El document_id puede ser un ObjectId o un ID físico (string)
-            document_id = item["document_id"]
-            
-            # Intentar buscar por ObjectId primero
-            try:
-                document = await db.documents.find_one({"_id": ObjectId(document_id)})
-            except:
-                # Si falla, buscar por ID físico
-                document = await db.documents.find_one({"id_fisico": document_id})
-            
+            document = await db.documents.find_one({"_id": ObjectId(item["document_id"])})
             if document:
                 result.append({
                     "loan_id": str(loan["_id"]),
@@ -278,12 +269,7 @@ async def export_loans_csv(
         item = await db.items.find_one({"_id": ObjectId(loan["item_id"])})
         document = None
         if item:
-            # El document_id puede ser un ObjectId o un ID físico (string)
-            document_id = item["document_id"]
-            try:
-                document = await db.documents.find_one({"_id": ObjectId(document_id)})
-            except:
-                document = await db.documents.find_one({"id_fisico": document_id})
+            document = await db.documents.find_one({"_id": ObjectId(item["document_id"])})
         
         writer.writerow([
             str(loan["_id"]),

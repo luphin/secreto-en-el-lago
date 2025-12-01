@@ -20,7 +20,6 @@ import LoanService from "@/services/loan.service";
 import type { LoanResponse } from "@/types/loan.types";
 import { LoanStatus } from "@/types/loan.types";
 import { LoanFormDialog } from "./LoanFormDialog";
-import { LateFeeDialog } from "@/components/admin/LateFeeDialog";
 
 const LoanStatuses = createListCollection({
     items: [
@@ -35,12 +34,6 @@ export function LoansTab() {
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<LoanStatus | "all">("all");
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [lateFeeDialog, setLateFeeDialog] = useState<{
-        isOpen: boolean;
-        loanId: string;
-        daysLate: number;
-        feeAmount: number;
-    }>({ isOpen: false, loanId: "", daysLate: 0, feeAmount: 0 });
 
     useEffect(() => {
         loadLoans();
@@ -64,33 +57,6 @@ export function LoansTab() {
         }
     };
 
-    const calculateLateFee = (loan: LoanResponse): { daysLate: number; feeAmount: number } => {
-        const dueDate = new Date(loan.fecha_devolucion_pactada);
-        const now = new Date();
-        const diffTime = now.getTime() - dueDate.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const daysLate = Math.max(0, diffDays);
-        const feeAmount = daysLate * 500; // $500 por día
-        return { daysLate, feeAmount };
-    };
-
-    const handleReturnClick = (loan: LoanResponse) => {
-        const { daysLate, feeAmount } = calculateLateFee(loan);
-
-        if (daysLate > 0) {
-            // Mostrar diálogo de multa
-            setLateFeeDialog({
-                isOpen: true,
-                loanId: loan._id,
-                daysLate,
-                feeAmount,
-            });
-        } else {
-            // Devolver directamente sin multa
-            handleReturn(loan._id);
-        }
-    };
-
     const handleReturn = async (loanId: string) => {
         try {
             await LoanService.returnLoan(loanId);
@@ -108,11 +74,6 @@ export function LoansTab() {
                 type: "error",
             });
         }
-    };
-
-    const handleLateFeeConfirm = () => {
-        setLateFeeDialog({ isOpen: false, loanId: "", daysLate: 0, feeAmount: 0 });
-        handleReturn(lateFeeDialog.loanId);
     };
 
     const handleFormSuccess = () => {
@@ -222,7 +183,7 @@ export function LoansTab() {
                                         {loan.estado === LoanStatus.ACTIVO && (
                                             <Button
                                                 size="sm"
-                                                onClick={() => handleReturnClick(loan)}
+                                                onClick={() => handleReturn(loan._id)}
                                                 colorPalette="green"
                                             >
                                                 <LuCircleCheck />
@@ -242,16 +203,6 @@ export function LoansTab() {
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
                 onSuccess={handleFormSuccess}
-            />
-
-            {/* Late Fee Dialog */}
-            <LateFeeDialog
-                isOpen={lateFeeDialog.isOpen}
-                onClose={() => setLateFeeDialog({ isOpen: false, loanId: "", daysLate: 0, feeAmount: 0 })}
-                onConfirm={handleLateFeeConfirm}
-                loanId={lateFeeDialog.loanId}
-                daysLate={lateFeeDialog.daysLate}
-                feeAmount={lateFeeDialog.feeAmount}
             />
         </VStack>
     );

@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     LOAN_HOURS_ROOM: int = 4  # Horas de préstamo en sala
     SANCTION_MULTIPLIER: int = 2  # Días de sanción = días de atraso * multiplicador
     
+    # Mercado Pago
+    MERCADOPAGO_ACCESS_TOKEN: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
