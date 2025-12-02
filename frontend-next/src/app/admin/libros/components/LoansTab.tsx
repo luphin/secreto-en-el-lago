@@ -20,29 +20,43 @@ import LoanService from "@/services/loan.service";
 import type { LoanResponse } from "@/types/loan.types";
 import { LoanStatus } from "@/types/loan.types";
 import { LoanFormDialog } from "./LoanFormDialog";
+import { LateFeeDialog } from "@/components/admin/LateFeeDialog";
 
 const LoanStatuses = createListCollection({
     items: [
+        { label: "Todos", value: "all" },
         { label: "Activo", value: LoanStatus.ACTIVO },
         { label: "Devuelto", value: LoanStatus.DEVUELTO },
         { label: "Vencido", value: LoanStatus.VENCIDO }
     ],
 });
 
-export function LoansTab() {
+interface LoansTabProps {
+    isActive: boolean;
+}
+
+export function LoansTab({ isActive }: LoansTabProps) {
     const [loans, setLoans] = useState<LoanResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<LoanStatus | "all">("all");
     const [isFormOpen, setIsFormOpen] = useState(false);
 
+    const [lateFeeDialog, setLateFeeDialog] = useState<{
+        isOpen: boolean;
+        loanId: string;
+        daysLate: number;
+        feeAmount: number;
+    }>({ isOpen: false, loanId: "", daysLate: 0, feeAmount: 0 });
+
     useEffect(() => {
-        loadLoans();
-    }, [statusFilter]);
+        if (isActive && loans.length === 0) {
+            loadLoans();
+        }
+    }, [isActive]);
 
     const loadLoans = async () => {
         setIsLoading(true);
         try {
-            const params = statusFilter !== "all" ? { estado: statusFilter, limit: 100 } : { limit: 100 };
             const data = await LoanService.getUserLoans(0, 100);
             setLoans(data);
         } catch (error) {
@@ -56,6 +70,36 @@ export function LoansTab() {
             setIsLoading(false);
         }
     };
+
+    // Filtrar préstamos localmente
+    const filteredLoans = statusFilter === "all"
+        ? loans
+        : loans.filter(loan => loan.estado === statusFilter);
+
+    const calculateLateFee = (loan: LoanResponse): { daysLate: number; feeAmount: number } => {
+        const dueDate = new Date(loan.fecha_devolucion_pactada);
+        const now = new Date();
+        const diffTime = now.getTime() - dueDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const daysLate = Math.max(0, diffDays);
+        const feeAmount = daysLate * 500;
+        return { daysLate, feeAmount };
+    };
+
+    const handleReturnClick = (loan: LoanResponse) => {
+        const { daysLate, feeAmount } = calculateLateFee(loan);
+        if (daysLate > 0) {
+            setLateFeeDialog({
+                isOpen: true,
+                loanId: loan._id,
+                daysLate,
+                feeAmount,
+            });
+        } else {
+            handleReturn(loan._id);
+        }
+    };
+
 
     const handleReturn = async (loanId: string) => {
         try {
@@ -75,7 +119,10 @@ export function LoansTab() {
             });
         }
     };
-
+    const handleLateFeeConfirm = () => {
+        setLateFeeDialog({ isOpen: false, loanId: "", daysLate: 0, feeAmount: 0 });
+        handleReturn(lateFeeDialog.loanId);
+    };
     const handleFormSuccess = () => {
         setIsFormOpen(false);
         loadLoans();
@@ -141,7 +188,7 @@ export function LoansTab() {
 
             {/* Loans table */}
             <Card.Root>
-                {loans.length === 0 ? (
+                {filteredLoans.length === 0 ? (
                     <Box textAlign="center" py={8}>
                         <Text color="gray.600">No se encontraron préstamos</Text>
                     </Box>
@@ -159,7 +206,7 @@ export function LoansTab() {
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {loans.map((loan) => (
+                            {filteredLoans.map((loan) => (
                                 <Table.Row key={loan._id}>
                                     <Table.Cell fontFamily="mono">{loan.item_id}</Table.Cell>
                                     <Table.Cell fontFamily="mono">{loan.user_id}</Table.Cell>
@@ -183,7 +230,7 @@ export function LoansTab() {
                                         {loan.estado === LoanStatus.ACTIVO && (
                                             <Button
                                                 size="sm"
-                                                onClick={() => handleReturn(loan._id)}
+                                                onClick={() => handleReturnClick(loan)}
                                                 colorPalette="green"
                                             >
                                                 <LuCircleCheck />
@@ -203,6 +250,16 @@ export function LoansTab() {
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
                 onSuccess={handleFormSuccess}
+            />
+
+            {/* Late Fee Dialog */}
+            <LateFeeDialog
+                isOpen={lateFeeDialog.isOpen}
+                onClose={() => setLateFeeDialog({ isOpen: false, loanId: "", daysLate: 0, feeAmount: 0 })}
+                onConfirm={handleLateFeeConfirm}
+                loanId={lateFeeDialog.loanId}
+                daysLate={lateFeeDialog.daysLate}
+                feeAmount={lateFeeDialog.feeAmount}
             />
         </VStack>
     );

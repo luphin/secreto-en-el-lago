@@ -22,7 +22,11 @@ import type { DocumentResponse } from "@/types/document.types";
 import { DocumentFormDialog } from "./DocumentFormDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 
-export function DocumentsTab() {
+interface DocumentsTabProps {
+    isActive: boolean;
+}
+
+export function DocumentsTab({ isActive }: DocumentsTabProps) {
     const [documents, setDocuments] = useState<DocumentResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -31,8 +35,10 @@ export function DocumentsTab() {
     const [selectedDocument, setSelectedDocument] = useState<DocumentResponse | null>(null);
 
     useEffect(() => {
-        loadDocuments();
-    }, []);
+        if (isActive && documents.length === 0) {
+            loadDocuments();
+        }
+    }, [isActive]);
 
     const loadDocuments = async () => {
         setIsLoading(true);
@@ -51,27 +57,18 @@ export function DocumentsTab() {
         }
     };
 
-    const handleSearch = async () => {
-        if (!searchTerm.trim()) {
-            loadDocuments();
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            const data = await DocumentService.getDocuments({ search: searchTerm });
-            setDocuments(data);
-        } catch (error) {
-            console.error("Error searching documents:", error);
-            toaster.create({
-                title: "Error",
-                description: "Error al buscar documentos",
-                type: "error",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Filtrar documentos localmente
+    const filteredDocuments = searchTerm.trim() === ""
+        ? documents
+        : documents.filter(doc => {
+            const searchLower = searchTerm.toLowerCase();
+            return (
+                doc.titulo.toLowerCase().includes(searchLower) ||
+                doc.autor.toLowerCase().includes(searchLower) ||
+                doc.categoria.toLowerCase().includes(searchLower) ||
+                doc.id_fisico.toLowerCase().includes(searchLower)
+            );
+        });
 
     const handleCreate = () => {
         setSelectedDocument(null);
@@ -146,15 +143,10 @@ export function DocumentsTab() {
                 <HStack justify="space-between">
                     <HStack flex={1} maxW="600px">
                         <Input
-                            placeholder="Buscar por título, autor o categoría..."
+                            placeholder="Buscar por título, autor, categoría o ID físico..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                         />
-                        <Button onClick={handleSearch} colorPalette="purple">
-                            <LuSearch />
-                            Buscar
-                        </Button>
                     </HStack>
                     <Button onClick={handleCreate} colorPalette="purple">
                         <LuPlus />
@@ -165,7 +157,7 @@ export function DocumentsTab() {
 
             {/* Documents table */}
             <Card.Root>
-                {documents.length === 0 ? (
+                {filteredDocuments.length === 0 ? (
                     <Box textAlign="center" py={8}>
                         <Text color="gray.600">No se encontraron documentos</Text>
                     </Box>
@@ -183,7 +175,7 @@ export function DocumentsTab() {
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {documents.map((doc) => (
+                            {filteredDocuments.map((doc) => (
                                 <Table.Row key={doc._id}>
                                     <Table.Cell fontWeight="semibold">{doc.id_fisico}</Table.Cell>
                                     <Table.Cell>{doc.titulo}</Table.Cell>

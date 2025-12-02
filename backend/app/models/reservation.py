@@ -72,6 +72,9 @@ class ReservationResponse(BaseModel):
     fecha_reserva: datetime
     fecha_creacion: datetime
     estado: ReservationStatus
+    # Campos opcionales con información del documento
+    document_titulo: Optional[str] = None
+    document_id_fisico: Optional[str] = None
 
     class Config:
         populate_by_name = True

@@ -130,7 +130,7 @@ export default function AdminDashboardPage() {
   if (isLoadingStats && isAdmin) {
     return (
       <Box minH="100vh" bg="bg.canvas">
-        {isBibliotecario && <AdminNav />}
+        {(isBibliotecario || isAdmin) && <AdminNav />}
         <Box display="flex" alignItems="center" justifyContent="center" minH="50vh">
           <Spinner size="xl" color="purple.500" />
         </Box>
@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
 
   return (
     <Box minH="100vh" bg="bg.canvas">
-      {isBibliotecario && <AdminNav />}
+      {(isBibliotecario || isAdmin) && <AdminNav />}
 
       <Container maxW="container.xl" py={8}>
         <VStack align="stretch" gap={8}>

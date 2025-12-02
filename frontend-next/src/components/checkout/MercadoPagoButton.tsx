@@ -2,9 +2,11 @@
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { useState } from 'react';
 import { PaymentService, PaymentItem } from '@/services/payment.service';
+import { Button, Box, HStack, Text, Spinner } from '@chakra-ui/react';
+import { LuCreditCard, LuShieldCheck } from 'react-icons/lu';
 
 // Inicializar Mercado Pago
-const PUBLIC_KEY = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || "TEST-00000000-0000-0000-0000-000000000000"; 
+const PUBLIC_KEY = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || "TEST-00000000-0000-0000-0000-000000000000";
 
 initMercadoPago(PUBLIC_KEY, {
     locale: 'es-CL'
@@ -34,20 +36,55 @@ export default function MercadoPagoButton({ items, userEmail, buttonText = "Paga
     };
 
     return (
-        <div className="payment-container">
+        <Box width="100%">
             {!preferenceId ? (
-                <button 
+                <Button
                     onClick={handleBuy}
                     disabled={isLoading}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    width="100%"
+                    size="lg"
+                    colorPalette="blue"
+                    variant="solid"
+                    _hover={{
+                        transform: "translateY(-2px)",
+                        shadow: "lg",
+                    }}
+                    transition="all 0.2s"
                 >
-                    {isLoading ? "Procesando..." : buttonText}
-                </button>
+                    {isLoading ? (
+                        <HStack gap={2}>
+                            <Spinner size="sm" />
+                            <Text>Procesando...</Text>
+                        </HStack>
+                    ) : (
+                        <HStack gap={2}>
+                            <LuCreditCard size={20} />
+                            <Text fontWeight="semibold">{buttonText}</Text>
+                        </HStack>
+                    )}
+                </Button>
             ) : (
-                <div className="mt-4">
-                    <Wallet initialization={{ preferenceId: preferenceId }} customization={{ texts: { valueProp: 'smart_option' } }} />
-                </div>
+                <Box mt={4}>
+                    <Box
+                        p={4}
+                        bg="blue.50"
+                        borderRadius="md"
+                        borderWidth="1px"
+                        borderColor="blue.200"
+                        mb={3}
+                    >
+                        <HStack gap={2} justify="center">
+                            <LuShieldCheck color="var(--chakra-colors-blue-600)" size={18} />
+                            <Text fontSize="sm" color="blue.700" fontWeight="medium">
+                                Pago seguro con Mercado Pago
+                            </Text>
+                        </HStack>
+                    </Box>
+                    <Wallet
+                        initialization={{ preferenceId: preferenceId }}
+                    />
+                </Box>
             )}
-        </div>
+        </Box>
     );
 }

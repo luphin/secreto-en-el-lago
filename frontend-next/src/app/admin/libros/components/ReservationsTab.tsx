@@ -30,21 +30,26 @@ const reservationStatusFilters = createListCollection({
     ],
 });
 
-export function ReservationsTab() {
+interface ReservationsTabProps {
+    isActive: boolean;
+}
+
+export function ReservationsTab({ isActive }: ReservationsTabProps) {
     const [reservations, setReservations] = useState<ReservationResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<ReservationStatus | "all">("all");
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     useEffect(() => {
-        loadReservations();
-    }, [statusFilter]);
+        if (isActive && reservations.length === 0) {
+            loadReservations();
+        }
+    }, [isActive]);
 
     const loadReservations = async () => {
         setIsLoading(true);
         try {
-            const params = statusFilter !== "all" ? { estado: statusFilter, limit: 100 } : { limit: 100 };
-            const data = await ReservationService.getReservations(params);
+            const data = await ReservationService.getReservations({ limit: 100 });
             setReservations(data);
         } catch (error) {
             console.error("Error loading reservations:", error);
@@ -57,6 +62,11 @@ export function ReservationsTab() {
             setIsLoading(false);
         }
     };
+
+    // Filtrar reservas localmente
+    const filteredReservations = statusFilter === "all"
+        ? reservations
+        : reservations.filter(reservation => reservation.estado === statusFilter);
 
     const handleCancel = async (reservationId: string) => {
         try {
@@ -161,7 +171,7 @@ export function ReservationsTab() {
 
             {/* Reservations table */}
             <Card.Root>
-                {reservations.length === 0 ? (
+                {filteredReservations.length === 0 ? (
                     <Box textAlign="center" py={8}>
                         <Text color="gray.600">No se encontraron reservas</Text>
                     </Box>
@@ -178,7 +188,7 @@ export function ReservationsTab() {
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {reservations.map((reservation) => (
+                            {filteredReservations.map((reservation) => (
                                 <Table.Row key={reservation._id}>
                                     <Table.Cell fontFamily="mono">{reservation.document_id}</Table.Cell>
                                     <Table.Cell fontFamily="mono">{reservation.user_id}</Table.Cell>

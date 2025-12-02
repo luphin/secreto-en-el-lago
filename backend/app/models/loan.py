@@ -82,6 +82,9 @@ class LoanResponse(BaseModel):
     fecha_devolucion_pactada: datetime
     fecha_devolucion_real: Optional[datetime]
     estado: LoanStatus
+    # Campos opcionales con información del documento
+    document_titulo: Optional[str] = None
+    document_id_fisico: Optional[str] = None
 
     class Config:
         populate_by_name = True

@@ -25,7 +25,11 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { QuickLoanDialog } from "./QuickLoanDialog";
 import { ItemStatus } from "@/types/item.types";
 
-export function ItemsTab() {
+interface ItemsTabProps {
+    isActive: boolean;
+}
+
+export function ItemsTab({ isActive }: ItemsTabProps) {
     const [items, setItems] = useState<ItemResponse[]>([]);
     const [documents, setDocuments] = useState<Map<string, DocumentResponse>>(new Map());
     const [isLoading, setIsLoading] = useState(true);
@@ -37,8 +41,10 @@ export function ItemsTab() {
     const [selectedItemForLoan, setSelectedItemForLoan] = useState<string>("");
 
     useEffect(() => {
-        loadItems();
-    }, []);
+        if (isActive && items.length === 0) {
+            loadItems();
+        }
+    }, [isActive]);
 
     const loadItems = async () => {
         setIsLoading(true);
@@ -71,27 +77,18 @@ export function ItemsTab() {
         }
     };
 
-    const handleSearch = async () => {
-        if (!searchDocId.trim()) {
-            loadItems();
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            const data = await ItemService.getItems({ document_id: searchDocId });
-            setItems(data);
-        } catch (error) {
-            console.error("Error searching items:", error);
-            toaster.create({
-                title: "Error",
-                description: "Error al buscar ejemplares",
-                type: "error",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Filtrar ejemplares localmente por ID físico, ubicación o ID de documento
+    const filteredItems = searchDocId.trim() === ""
+        ? items
+        : items.filter(item => {
+            const doc = documents.get(item.document_id);
+            const searchLower = searchDocId.toLowerCase();
+            return (
+                item.document_id.toLowerCase().includes(searchLower) ||
+                item.ubicacion.toLowerCase().includes(searchLower) ||
+                doc?.id_fisico.toLowerCase().includes(searchLower)
+            );
+        });
 
     const handleCreate = () => {
         setSelectedItem(null);
@@ -179,15 +176,10 @@ export function ItemsTab() {
                 <HStack justify="space-between">
                     <HStack flex={1} maxW="600px">
                         <Input
-                            placeholder="Buscar por ID de documento..."
+                            placeholder="Buscar por ID físico, ubicación o ID de documento..."
                             value={searchDocId}
                             onChange={(e) => setSearchDocId(e.target.value)}
-                            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                         />
-                        <Button onClick={handleSearch} colorPalette="purple">
-                            <LuSearch />
-                            Buscar
-                        </Button>
                     </HStack>
                     <Button onClick={handleCreate} colorPalette="purple">
                         <LuPlus />
@@ -198,7 +190,7 @@ export function ItemsTab() {
 
             {/* Items table */}
             <Card.Root>
-                {items.length === 0 ? (
+                {filteredItems.length === 0 ? (
                     <Box textAlign="center" py={8}>
                         <Text color="gray.600">No se encontraron ejemplares</Text>
                     </Box>
@@ -214,7 +206,7 @@ export function ItemsTab() {
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {items.map((item) => {
+                            {filteredItems.map((item) => {
                                 const doc = documents.get(item.document_id);
                                 return (
                                     <Table.Row key={item._id}>

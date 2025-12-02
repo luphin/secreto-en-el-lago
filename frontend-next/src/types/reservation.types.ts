@@ -15,6 +15,9 @@ export interface ReservationResponse {
     fecha_reserva: string;
     fecha_creacion: string;
     estado: ReservationStatus;
+    // Información adicional del documento
+    document_titulo?: string;
+    document_id_fisico?: string;
 }
 
 export interface ReservationCreate {

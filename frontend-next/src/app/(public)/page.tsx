@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Box,
   Container,
@@ -16,22 +17,135 @@ import { Sidebar } from "@/components/catalog/Sidebar";
 import { BookCard } from "@/components/catalog/BookCard";
 import { LuDownload, LuVideo, LuHeadphones } from "react-icons/lu";
 import { CarouselStatic } from "@/components/catalog/Carousel";
+import { BookDetailDialog } from "@/components/catalog/BookDetailDialog";
 
 // Datos de ejemplo
 const featuredBooks = [
-  { id: 1, title: "Cien años de soledad", author: "Gabriel Garí­a árquez", available: true },
-  { id: 2, title: "Don Quijote de la Mancha", author: "Miguel de Cervantes", available: true },
-  { id: 3, title: "1984", author: "George Orwell", available: false },
-  { id: 4, title: "El principito", author: "Antoine de Saint-ExupÃ©ry", available: true },
-  { id: 5, title: "Orgullo y prejuicio", author: "Jane Austen", available: true },
+  {
+    id: 1,
+    title: "Cien años de soledad",
+    author: "Gabriel García Márquez",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780307474728-L.jpg",
+    description: "Una obra maestra de la literatura latinoamericana que narra la historia de la familia Buendía a lo largo de varias generaciones en el pueblo ficticio de Macondo.",
+    location: "Estantería A, Nivel 2",
+    editorial: "Editorial Sudamericana",
+    year: 1967,
+    category: "Ficción"
+  },
+  {
+    id: 2,
+    title: "Don Quijote de la Mancha",
+    author: "Miguel de Cervantes",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9788417958596-L.jpg",
+    description: "La obra cumbre de la literatura española que narra las aventuras de un hidalgo que pierde la razón y se cree caballero andante.",
+    location: "Estantería B, Nivel 1",
+    editorial: "Hispamérica Books, S.L.",
+    year: 2022,
+    category: "Ficción clásica"
+  },
+  {
+    id: 3,
+    title: "1984",
+    author: "George Orwell",
+    available: false,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780451524935-L.jpg",
+    description: "Una distopía sobre un futuro totalitario donde el Gran Hermano todo lo ve y controla.",
+    location: "Estantería C, Nivel 3",
+    editorial: "Signet Classics",
+    year: 1949,
+    category: "Ciencia ficción"
+  },
+  {
+    id: 4,
+    title: "El principito",
+    author: "Antoine de Saint-Exupéry",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780156012195-L.jpg",
+    description: "Un cuento poético que narra las aventuras de un pequeño príncipe que viaja de planeta en planeta.",
+    location: "Estantería D, Nivel 1",
+    editorial: "Harcourt",
+    year: 1943,
+    category: "Infantil"
+  },
+  {
+    id: 5,
+    title: "Orgullo y prejuicio",
+    author: "Jane Austen",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9788415083696-L.jpg",
+    description: "Una novela romántica que explora las complejidades del amor y las clases sociales en la Inglaterra del siglo XIX.",
+    location: "Estantería E, Nivel 2",
+    editorial: "Albor Libros",
+    year: 2017,
+    category: "Romance clásico"
+  }
+
 ];
 
 const newBooks = [
-  { id: 6, title: "Sapiens", author: "Yuval Noah Harari", available: true },
-  { id: 7, title: "El código Da Vinci", author: "Dan Brown", available: true },
-  { id: 8, title: "La sombra del viento", author: "Carlos Ruiz Zafán", available: false },
-  { id: 9, title: "Los juegos del hambre", author: "Suzanne Collins", available: true },
-  { id: 10, title: "Harry Potter y la piedra filosofal", author: "J.K. Rowling", available: true },
+  {
+    id: 6,
+    title: "Sapiens",
+    author: "Yuval Noah Harari",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg",
+    description: "Una exploración de la historia de la humanidad desde la Edad de Piedra hasta la era moderna.",
+    location: "Estantería F, Nivel 3",
+    editorial: "Harper",
+    year: 2011,
+    category: "Historia"
+  },
+  {
+    id: 7,
+    title: "El código Da Vinci",
+    author: "Dan Brown",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780307474278-L.jpg",
+    description: "Un thriller que mezcla arte, historia y misterio en una búsqueda del Santo Grial.",
+    location: "Estantería G, Nivel 2",
+    editorial: "Doubleday",
+    year: 2003,
+    category: "Thriller"
+  },
+  {
+    id: 8,
+    title: "La sombra del viento",
+    author: "Carlos Ruiz Zafón",
+    available: false,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780143034902-L.jpg",
+    description: "Un misterio literario ambientado en la Barcelona de posguerra.",
+    location: "Estantería H, Nivel 1",
+    editorial: "Penguin Books",
+    year: 2001,
+    category: "Misterio"
+  },
+  {
+    id: 9,
+    title: "Los juegos del hambre",
+    author: "Suzanne Collins",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780439023481-L.jpg",
+    description: "Una distopía juvenil sobre una competencia mortal en un futuro postapocalíptico.",
+    location: "Estantería I, Nivel 2",
+    editorial: "Scholastic",
+    year: 2008,
+    category: "Juvenil"
+  },
+  {
+    id: 10,
+    title: "Harry Potter y la piedra filosofal",
+    author: "J.K. Rowling",
+    available: true,
+    imageUrl: "https://covers.openlibrary.org/b/isbn/9780439708180-L.jpg",
+    description: "El inicio de la saga mágica sobre un joven mago y sus aventuras en Hogwarts.",
+    location: "Estantería J, Nivel 1",
+    editorial: "Scholastic",
+    year: 1997,
+    category: "Fantasía juvenil"
+  }
+
 ];
 
 const digitalResources = [
@@ -59,6 +173,18 @@ const categories = [
 ];
 
 export default function CatalogPage() {
+  const [selectedBook, setSelectedBook] = useState<typeof featuredBooks[0] | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const handleBookClick = (book: typeof featuredBooks[0]) => {
+    setSelectedBook(book);
+    setIsDialogOpen(true);
+  };
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedBook(null);
+  };
+
+
   return (
     <Box minH="100vh" bg="bg.canvas">
       <Header />
@@ -88,6 +214,8 @@ export default function CatalogPage() {
                       title={book.title}
                       author={book.author}
                       available={book.available}
+                      imageUrl={book.imageUrl}
+                      onClick={() => handleBookClick(book)}
                     />
                   ))}
                 </SimpleGrid>
@@ -105,6 +233,8 @@ export default function CatalogPage() {
                       title={book.title}
                       author={book.author}
                       available={book.available}
+                      imageUrl={book.imageUrl}
+                      onClick={() => handleBookClick(book)}
                     />
                   ))}
                 </SimpleGrid>
@@ -127,11 +257,7 @@ export default function CatalogPage() {
                         bg="bg.muted"
                         textAlign="center"
                         transition="all 0.2s"
-                        _hover={{
-                          shadow: "lg",
-                          transform: "translateY(-4px)",
-                          cursor: "pointer",
-                        }}
+
                       >
                         <VStack gap={3}>
                           <Box
@@ -181,6 +307,14 @@ export default function CatalogPage() {
           </Container>
         </Box>
       </Flex>
+      {/* Book Detail Dialog */}
+      {selectedBook && (
+        <BookDetailDialog
+          isOpen={isDialogOpen}
+          onClose={handleCloseDialog}
+          book={selectedBook}
+        />
+      )}
     </Box>
   );
 }

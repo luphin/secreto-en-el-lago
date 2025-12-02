@@ -58,6 +58,7 @@ async def list_loans(
     El personal puede ver todos los préstamos.
     """
     from app.models.user import UserRole
+    from bson import ObjectId
     
     # Si no es staff, solo puede ver sus propios préstamos
     if current_user["rol"] not in [UserRole.BIBLIOTECARIO, UserRole.ADMINISTRATIVO]:
@@ -71,19 +72,42 @@ async def list_loans(
         estado=estado
     )
     
-    return [
-        LoanResponse(
-            _id=str(loan["_id"]),
-            item_id=loan["item_id"],
-            user_id=loan["user_id"],
-            tipo_prestamo=loan["tipo_prestamo"],
-            fecha_prestamo=loan["fecha_prestamo"],
-            fecha_devolucion_pactada=loan["fecha_devolucion_pactada"],
-            fecha_devolucion_real=loan.get("fecha_devolucion_real"),
-            estado=loan["estado"]
+    # Enriquecer con información del documento
+    enriched_loans = []
+    for loan in loans:
+        # Obtener el item para luego obtener el documento
+        item = await db.items.find_one({"_id": ObjectId(loan["item_id"])})
+        document_titulo = None
+        document_id_fisico = None
+        
+        if item:
+            document_id = item["document_id"]
+            # El document_id puede ser un ObjectId o un ID físico (string)
+            try:
+                document = await db.documents.find_one({"_id": ObjectId(document_id)})
+            except:
+                document = await db.documents.find_one({"id_fisico": document_id})
+            
+            if document:
+                document_titulo = document["titulo"]
+                document_id_fisico = document["id_fisico"]
+        
+        enriched_loans.append(
+            LoanResponse(
+                _id=str(loan["_id"]),
+                item_id=loan["item_id"],
+                user_id=loan["user_id"],
+                tipo_prestamo=loan["tipo_prestamo"],
+                fecha_prestamo=loan["fecha_prestamo"],
+                fecha_devolucion_pactada=loan["fecha_devolucion_pactada"],
+                fecha_devolucion_real=loan.get("fecha_devolucion_real"),
+                estado=loan["estado"],
+                document_titulo=document_titulo,
+                document_id_fisico=document_id_fisico
+            )
         )
-        for loan in loans
-    ]
+    
+    return enriched_loans
 
 
 @router.get("/overdue", response_model=List[LoanResponse])

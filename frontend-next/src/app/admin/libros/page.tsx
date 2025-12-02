@@ -33,19 +33,19 @@ export default function AdminLibrosPage() {
                         </Tabs.List>
 
                         <Tabs.Content value="documents">
-                            <DocumentsTab />
+                            <DocumentsTab isActive={activeTab === "documents"} />
                         </Tabs.Content>
 
                         <Tabs.Content value="items">
-                            <ItemsTab />
+                            <ItemsTab isActive={activeTab === "items"} />
                         </Tabs.Content>
 
                         <Tabs.Content value="loans">
-                            <LoansTab />
+                            <LoansTab isActive={activeTab === "loans"} />
                         </Tabs.Content>
 
                         <Tabs.Content value="reservations">
-                            <ReservationsTab />
+                            <ReservationsTab isActive={activeTab === "reservations"} />
                         </Tabs.Content>
                     </Tabs.Root>
                 </VStack>

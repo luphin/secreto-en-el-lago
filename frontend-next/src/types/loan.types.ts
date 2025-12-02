@@ -22,6 +22,9 @@ export interface LoanResponse {
     fecha_devolucion_pactada: string;
     fecha_devolucion_real?: string;
     estado: LoanStatus;
+    // Información adicional del documento
+    document_titulo?: string;
+    document_id_fisico?: string;
 }
 
 export interface LoanCreate {

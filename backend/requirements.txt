@@ -30,4 +30,4 @@ httpx==0.26.0
 python-dotenv==1.0.0
 
 # Mercado Pago
-mercadopago
+mercadopago==2.3.0

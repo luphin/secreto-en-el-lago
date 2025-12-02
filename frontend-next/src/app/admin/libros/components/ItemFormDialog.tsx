@@ -12,6 +12,7 @@ import {
 import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster";
 import ItemService from "@/services/item.service";
+import DocumentService from "@/services/document.service";
 import type { ItemResponse, ItemCreate, ItemUpdate } from "@/types/item.types";
 import { ItemStatus } from "@/types/item.types";
 
@@ -32,26 +33,20 @@ interface ItemFormDialogProps {
 }
 
 export function ItemFormDialog({ isOpen, onClose, item, onSuccess }: ItemFormDialogProps) {
-    const [formData, setFormData] = useState<ItemCreate>({
-        document_id: "",
-        ubicacion: "",
-        estado: ItemStatus.DISPONIBLE,
-    });
+    const [physicalId, setPhysicalId] = useState("");
+    const [ubicacion, setUbicacion] = useState("");
+    const [estado, setEstado] = useState<ItemStatus>(ItemStatus.DISPONIBLE);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (item) {
-            setFormData({
-                document_id: item.document_id,
-                ubicacion: item.ubicacion,
-                estado: item.estado,
-            });
+            setPhysicalId("");
+            setUbicacion(item.ubicacion);
+            setEstado(item.estado);
         } else {
-            setFormData({
-                document_id: "",
-                ubicacion: "",
-                estado: ItemStatus.DISPONIBLE,
-            });
+            setPhysicalId("");
+            setUbicacion("");
+            setEstado(ItemStatus.DISPONIBLE);
         }
     }, [item, isOpen]);
 
@@ -63,8 +58,8 @@ export function ItemFormDialog({ isOpen, onClose, item, onSuccess }: ItemFormDia
             if (item) {
                 // Update
                 const updateData: ItemUpdate = {
-                    ubicacion: formData.ubicacion,
-                    estado: formData.estado,
+                    ubicacion,
+                    estado,
                 };
                 await ItemService.updateItem(item._id, updateData);
                 toaster.create({
@@ -73,7 +68,15 @@ export function ItemFormDialog({ isOpen, onClose, item, onSuccess }: ItemFormDia
                     type: "success",
                 });
             } else {
-                // Create
+                // Create - primero buscar el documento por ID físico
+                const documentData = await DocumentService.getDocumentByPhysicalId(physicalId);
+
+                const formData: ItemCreate = {
+                    document_id: documentData.document_id,
+                    ubicacion,
+                    estado,
+                };
+
                 await ItemService.createItem(formData);
                 toaster.create({
                     title: "Éxito",
@@ -106,20 +109,21 @@ export function ItemFormDialog({ isOpen, onClose, item, onSuccess }: ItemFormDia
                     <Dialog.Body>
                         <form onSubmit={handleSubmit}>
                             <VStack gap={4}>
-                                <Field label="ID del Documento" required>
-                                    <Input
-                                        value={formData.document_id}
-                                        onChange={(e) => setFormData({ ...formData, document_id: e.target.value })}
-                                        placeholder="ID del documento"
-                                        required
-                                        disabled={!!item}
-                                    />
-                                </Field>
+                                {!item && (
+                                    <Field label="ID Físico del Documento" required>
+                                        <Input
+                                            value={physicalId}
+                                            onChange={(e) => setPhysicalId(e.target.value)}
+                                            placeholder="LIB-006-2024"
+                                            required
+                                        />
+                                    </Field>
+                                )}
 
                                 <Field label="Ubicación" required>
                                     <Input
-                                        value={formData.ubicacion}
-                                        onChange={(e) => setFormData({ ...formData, ubicacion: e.target.value })}
+                                        value={ubicacion}
+                                        onChange={(e) => setUbicacion(e.target.value)}
                                         placeholder="Estantería 5, Nivel 3"
                                         required
                                     />
@@ -128,8 +132,8 @@ export function ItemFormDialog({ isOpen, onClose, item, onSuccess }: ItemFormDia
                                 <Field label="Estado" required>
                                     <Select.Root
                                         collection={itemStatuses}
-                                        value={[formData.estado ?? ItemStatus.DISPONIBLE]}
-                                        onValueChange={(e) => setFormData({ ...formData, estado: e.value[0] as ItemStatus })}
+                                        value={[estado ?? ItemStatus.DISPONIBLE]}
+                                        onValueChange={(e) => setEstado(e.value[0] as ItemStatus)}
                                     >
                                         <Select.Trigger>
                                             <Select.ValueText placeholder="Seleccionar estado" />
@@ -148,19 +152,19 @@ export function ItemFormDialog({ isOpen, onClose, item, onSuccess }: ItemFormDia
                     </Dialog.Body>
 
                     <Dialog.Footer>
-                        <Dialog.CloseTrigger asChild>
-                            <Button variant="outline" onClick={onClose}>
-                                Cancelar
-                            </Button>
-                        </Dialog.CloseTrigger>
+                        <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+                            Cancelar
+                        </Button>
                         <Button
-                            colorPalette="purple"
+                            colorPalette="blue"
                             onClick={handleSubmit}
                             loading={isSubmitting}
                         >
                             {item ? "Actualizar" : "Crear"}
                         </Button>
                     </Dialog.Footer>
+
+                    <Dialog.CloseTrigger />
                 </Dialog.Content>
             </Dialog.Positioner>
         </Dialog.Root>

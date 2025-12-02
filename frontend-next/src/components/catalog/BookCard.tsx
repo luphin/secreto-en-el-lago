@@ -7,9 +7,10 @@ interface BookCardProps {
   author: string;
   imageUrl?: string;
   available: boolean;
+  onClick?: () => void;
 }
 
-export function BookCard({ title, author, imageUrl, available }: BookCardProps) {
+export function BookCard({ title, author, imageUrl, available, onClick }: BookCardProps) {
   return (
     <Box
       borderWidth="1px"
@@ -24,6 +25,7 @@ export function BookCard({ title, author, imageUrl, available }: BookCardProps) 
         cursor: "pointer"
       }}
       bg="bg.muted"
+      onClick={onClick}
     >
       <VStack align="stretch" gap={3}>
         <Box

@@ -63,6 +63,7 @@ async def list_reservations(
     El personal puede ver todas las reservas.
     """
     from app.models.user import UserRole
+    from bson import ObjectId
     
     # Si no es staff, solo puede ver sus propias reservas
     if current_user["rol"] not in [UserRole.BIBLIOTECARIO, UserRole.ADMINISTRATIVO]:
@@ -77,17 +78,26 @@ async def list_reservations(
         estado=estado
     )
     
-    return [
-        ReservationResponse(
-            _id=str(res["_id"]),
-            document_id=res["document_id"],
-            user_id=res["user_id"],
-            fecha_reserva=res["fecha_reserva"],
-            fecha_creacion=res["fecha_creacion"],
-            estado=res["estado"]
+    # Enriquecer con información del documento
+    enriched_reservations = []
+    for res in reservations:
+        # Obtener información del documento
+        document = await db.documents.find_one({"_id": ObjectId(res["document_id"])})
+        
+        enriched_reservations.append(
+            ReservationResponse(
+                _id=str(res["_id"]),
+                document_id=res["document_id"],
+                user_id=res["user_id"],
+                fecha_reserva=res["fecha_reserva"],
+                fecha_creacion=res["fecha_creacion"],
+                estado=res["estado"],
+                document_titulo=document["titulo"] if document else None,
+                document_id_fisico=document["id_fisico"] if document else None
+            )
         )
-        for res in reservations
-    ]
+    
+    return enriched_reservations
 
 
 @router.get("/{reservation_id}", response_model=ReservationResponse)
